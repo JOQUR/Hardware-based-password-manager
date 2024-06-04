@@ -1,1 +1,3 @@
 # Hardware-based-password-manager
+[![Run SonarCloud](https://github.com/JOQUR/Hardware-based-password-manager/actions/workflows/build.yaml/badge.svg?branch=main)](https://github.com/JOQUR/Hardware-based-password-manager/actions/workflows/build.yaml)
+[![CMake Build](https://github.com/JOQUR/Hardware-based-password-manager/actions/workflows/cmake-single-platform.yml/badge.svg)](https://github.com/JOQUR/Hardware-based-password-manager/actions/workflows/cmake-single-platform.yml)
