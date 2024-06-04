@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.10)
+project(win_implementation)
+
+enable_language(C)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+set(LIB_NAME circular_buffer)
+set(MODULE_FILE ${PROJECT_SOURCE_DIR}/src/circular_buffer.c)
+add_library(${LIB_NAME} STATIC ${MODULE_FILE})
+target_include_directories(${LIB_NAME} PUBLIC 
+                                        ./inc
+                                        ../debug)
