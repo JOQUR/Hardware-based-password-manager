@@ -11,7 +11,7 @@ add_subdirectory(circular_buffer)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_executable(${PROJECT_NAME} windows_implementation/main.c)
 else()
-    message("nothing for now")
+    message(${CMAKE_SYSTEM_NAME})
 endif()
 
 
