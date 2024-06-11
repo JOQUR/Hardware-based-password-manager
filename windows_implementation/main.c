@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "customer_bank/inc/customer_bank.h"
+#include "customer_bank.h"
 #include "circular_buffer.h"
 #include "assert.h"
 #include "string.h"
