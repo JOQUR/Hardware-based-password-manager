@@ -13,3 +13,4 @@ add_executable(${PROJECT_NAME} main.c)
 target_include_directories(${PROJECT_NAME} PUBLIC ./debug)
 target_link_libraries(${PROJECT_NAME} PUBLIC customer_bank)
 target_link_libraries(${PROJECT_NAME} PUBLIC circular_buffer)
+
