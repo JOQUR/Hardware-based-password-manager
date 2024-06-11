@@ -10,8 +10,8 @@ add_subdirectory(circular_buffer)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_executable(${PROJECT_NAME} windows_implementation/main.c)
-else()
-    message(${CMAKE_SYSTEM_NAME})
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    add_executable(${PROJECT_NAME} windows_implementation/main.c)
 endif()
 
 
