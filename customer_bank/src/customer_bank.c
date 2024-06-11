@@ -29,13 +29,13 @@ static userstruct_t user_data[MAX_USERS];
 static uint8_t counter;
 
 
-static inline customer_bank_statut_t checkAvailableSpace(void)
+static inline customer_bank_status_t checkAvailableSpace(void)
 {
     return (counter < MAX_USERS) ? ST_OK : ST_END_OF_SPACE;
 }
 
 
-customer_bank_statut_t customer_bank_init(void)
+customer_bank_status_t customer_bank_init(void)
 {
     memset(user_data, 0xff, sizeof(user_data));
 }

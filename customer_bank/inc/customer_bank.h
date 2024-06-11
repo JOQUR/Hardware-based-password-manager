@@ -9,9 +9,9 @@ typedef enum {
     ST_OK,
     ST_NOK,
     ST_END_OF_SPACE
-} customer_bank_statut_t;
+} customer_bank_status_t;
 
 
-customer_bank_statut_t customer_bank_init(void);
+customer_bank_status_t customer_bank_init(void);
 
 #endif
