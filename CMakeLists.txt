@@ -9,8 +9,8 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 add_subdirectory(customer_bank)
 add_subdirectory(circular_buffer)
+add_subdirectory(aes_crypto)
 add_executable(${PROJECT_NAME} main.c)
 target_include_directories(${PROJECT_NAME} PUBLIC ./debug)
 target_link_libraries(${PROJECT_NAME} PUBLIC customer_bank)
 target_link_libraries(${PROJECT_NAME} PUBLIC circular_buffer)
-

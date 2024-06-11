@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include "customer_bank/inc/customer_bank.h"
+#include "customer_bank.h"
 #include "circular_buffer.h"
 #include "assert.h"
+#include "aes_crypto.h"
 #include "string.h"
 #include "debug.h"
 
@@ -12,6 +13,7 @@ int main(void)
 {
     test_circular_buffer();
     test_circular_buffer_continous_work();
+    aes_crypto();
     return 0;
 }
 
