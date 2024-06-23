@@ -8,7 +8,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 set(LIB_NAME customer_bank)
-set(MODULE_FILE ${PROJECT_SOURCE_DIR}/src/customer_bank.c)
+set(MODULE_FILE ${PROJECT_SOURCE_DIR}/src/${LIB_NAME}.c)
 add_library(${LIB_NAME} STATIC ${MODULE_FILE})
 target_include_directories(${LIB_NAME} PUBLIC 
                                         ./inc
