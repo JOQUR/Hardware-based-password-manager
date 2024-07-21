@@ -5,6 +5,7 @@
 #include "test_aes.h"
 #include "string.h"
 #include "debug.h"
+#include "test_ecdh.h"
 
 void test_circular_buffer(void);
 void test_circular_buffer_continous_work(void);
@@ -14,6 +15,7 @@ int main(void)
     test_circular_buffer();
     test_circular_buffer_continous_work();
     test_aes();
+    ecdh_test();
     return 0;
 }
 

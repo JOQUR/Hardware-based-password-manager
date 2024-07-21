@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "customer_bank.h": "c"
+        "customer_bank.h": "c",
+        "stdlib.h": "c",
+        "time.h": "c",
+        "test_ecdh.h": "c"
     }
 }
