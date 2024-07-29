@@ -21,6 +21,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: GetFirtItem
+      run: sudo add-apt-repository universe
+    - name: GetLibCBOR
+      run: sudo apt-get install libcbor-dev
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
