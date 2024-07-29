@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(win_implementation)
+project(linux_implementation)
 
 enable_language(C)
 
