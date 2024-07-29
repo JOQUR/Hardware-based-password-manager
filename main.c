@@ -6,9 +6,11 @@
 #include "string.h"
 #include "debug.h"
 #include "test_ecdh.h"
+#include <cbor.h>
 
 void test_circular_buffer(void);
 void test_circular_buffer_continous_work(void);
+int test_cbor();
 
 int main(void)
 {
@@ -16,6 +18,7 @@ int main(void)
     test_circular_buffer_continous_work();
     test_aes();
     ecdh_test();
+    (void)test_cbor();
     return 0;
 }
 
@@ -50,4 +53,29 @@ void test_circular_buffer_continous_work(void)
         assert(x == BUFFER_SIZE - i);
     }
     printf("%s done!\n", __func__);
+}
+
+int test_cbor()
+{
+    /* Preallocate the map structure */
+    cbor_item_t * root = cbor_new_definite_map(2);
+    /* Add the content */
+    cbor_map_add(root, (struct cbor_pair) {
+        .key = cbor_move(cbor_build_string("Is CBOR awesome?")),
+        .value = cbor_move(cbor_build_bool(true))
+    });
+    cbor_map_add(root, (struct cbor_pair) {
+        .key = cbor_move(cbor_build_uint8(42)),
+        .value = cbor_move(cbor_build_string("Is the answer"))
+    });
+    /* Output: `buffer_size` bytes of data in the `buffer` */
+    unsigned char * buffer;
+    size_t buffer_size;
+    cbor_serialize_alloc(root, &buffer, &buffer_size);
+
+    fwrite(buffer, 1, buffer_size, stdout);
+    free(buffer);
+
+    fflush(stdout);
+    cbor_decref(&root);
 }

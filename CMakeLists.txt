@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(win_implementation)
+project(linux_implementation)
 
 enable_language(C)
 
@@ -17,3 +17,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC customer_bank)
 target_link_libraries(${PROJECT_NAME} PUBLIC circular_buffer)
 target_link_libraries(${PROJECT_NAME} PUBLIC AES)
 target_link_libraries(${PROJECT_NAME} PUBLIC ecdh)
+target_link_libraries(${PROJECT_NAME} PUBLIC cbor)
