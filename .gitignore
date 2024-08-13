@@ -12,3 +12,5 @@ _deps
 build/
 .venv
 .vscode
+/messaging/*c
+/messaging/*h
