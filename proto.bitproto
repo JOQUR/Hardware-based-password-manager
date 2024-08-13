@@ -1,4 +1,4 @@
-proto pen
+proto test
 
 enum Color : uint3 {
     COLOR_UNKNOWN = 0
@@ -8,8 +8,16 @@ enum Color : uint3 {
 }
 
 type Timestamp = int64
+type Dupa = int8
 
+message Shit {
+    bool jeden = 1
+    byte[8] array = 2
+    uint41 ptr = 3
+}
 message Pen {
     Color color = 1
     Timestamp produced_at = 2
+    Dupa dupa = 3
+    Shit shit = 4
 }
