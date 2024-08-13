@@ -10,8 +10,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 # Set here name of the module
 set(LIB_NAME messaging_bp)
 
-
-set(MODULE_FILE ${PROJECT_SOURCE_DIR}/${LIB_NAME}.c ${PROJECT_SOURCE_DIR}/${LIB_NAME}.h )
+set(MODULE_FILE ${PROJECT_SOURCE_DIR}/src/${LIB_NAME}.c ${PROJECT_SOURCE_DIR}/inc/${LIB_NAME}.h )
 add_library(${LIB_NAME} STATIC ${MODULE_FILE})
 target_include_directories(${LIB_NAME} PUBLIC 
                                         ../debug

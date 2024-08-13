@@ -12,5 +12,3 @@ _deps
 build/
 .venv
 .vscode
-/messaging_bp/src/*
-/messaging_bp/inc/*
