@@ -7,7 +7,7 @@
 #include "debug.h"
 #include "ecdh.h"
 #include <cbor.h>
-#include "proto_bp.h"
+#include "messaging_bp.h"
 #include "compact25519.h"
 
 
