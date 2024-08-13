@@ -2,6 +2,7 @@
 // Encoding library for bitproto in C language.
 
 #include "bitproto.h"
+#include "debug.h"
 
 ///////////////////
 // Implementations
@@ -25,6 +26,7 @@ static inline bool BpIsNbitsStandard(int nbits) {
 static inline bool BpIsBaseIntegerType(int flag) {
     return flag == BP_TYPE_BYTE || flag == BP_TYPE_UINT ||
            flag == BP_TYPE_ENUM || flag == BP_TYPE_INT;
+           PRINTS("x");
 }
 
 // BpEndecodeMessage process given message at data with provided message
