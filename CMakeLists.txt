@@ -13,20 +13,28 @@ add_compile_definitions(COMPACT_DISABLE_X25519_DERIVE)
 set(src)
 set(inc)
 
-list(APPEND src  messaging_bp/src/messaging_bp.c)
-list(APPEND inc  messaging_bp/inc)
-add_subdirectory(customer_bank)
-add_subdirectory(circular_buffer)
+# Append new source file to compile
+list(APPEND src  
+        customer_bank/src/customer_bank.c 
+        circular_buffer/src/circular_buffer.c
+        messaging_bp/src/messaging_bp.c
+        main.c
+)
+
+# Append new directory to include
+list(APPEND inc  
+        debug
+        customer_bank/inc 
+        circular_buffer/inc
+        messaging_bp/inc
+)
 add_subdirectory(AES)
 add_subdirectory(ECDH)
-add_subdirectory(messaging_bp)
 add_subdirectory(compact25519)
 add_subdirectory(bitproto)
 
-add_executable(${PROJECT_NAME} main.c ${src} )
-target_include_directories(${PROJECT_NAME} PUBLIC ./debug ${inc})
-target_link_libraries(${PROJECT_NAME} PUBLIC customer_bank)
-target_link_libraries(${PROJECT_NAME} PUBLIC circular_buffer)
+add_executable(${PROJECT_NAME} ${src} )
+target_include_directories(${PROJECT_NAME} PUBLIC ${inc})
 target_link_libraries(${PROJECT_NAME} PUBLIC AES)
 target_link_libraries(${PROJECT_NAME} PUBLIC ecdh)
 target_link_libraries(${PROJECT_NAME} PUBLIC cbor)
