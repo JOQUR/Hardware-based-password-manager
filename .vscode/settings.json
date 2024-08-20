@@ -4,6 +4,7 @@
         "stdlib.h": "c",
         "time.h": "c",
         "test_ecdh.h": "c",
-        "maps.h": "c"
+        "maps.h": "c",
+        "aes.h": "c"
     }
 }

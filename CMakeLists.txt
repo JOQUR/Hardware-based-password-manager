@@ -7,6 +7,9 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
+set(EXE_NAME    ${PROJECT_NAME}-exec)
+set(LIB_NAME    ${PROJECT_NAME}-lib)
+
 add_compile_definitions(COMPACT_DISABLE_ED25519)
 add_compile_definitions(COMPACT_DISABLE_X25519_DERIVE)
 
@@ -18,7 +21,6 @@ list(APPEND src
         customer_bank/src/customer_bank.c 
         circular_buffer/src/circular_buffer.c
         messaging_bp/src/messaging_bp.c
-        main.c
 )
 
 # Append new directory to include
@@ -33,10 +35,19 @@ add_subdirectory(ECDH)
 add_subdirectory(compact25519)
 add_subdirectory(bitproto)
 
-add_executable(${PROJECT_NAME} ${src} )
-target_include_directories(${PROJECT_NAME} PUBLIC ${inc})
-target_link_libraries(${PROJECT_NAME} PUBLIC AES)
-target_link_libraries(${PROJECT_NAME} PUBLIC ecdh)
-target_link_libraries(${PROJECT_NAME} PUBLIC cbor)
-target_link_libraries(${PROJECT_NAME} PUBLIC bitproto)
-target_link_libraries(${PROJECT_NAME} PUBLIC compact25519)
+add_executable(${EXE_NAME} main.c ${src} )
+add_library(${LIB_NAME} ${src})
+
+target_include_directories(${EXE_NAME} PUBLIC ${inc})
+target_link_libraries(${EXE_NAME} PUBLIC AES)
+target_link_libraries(${EXE_NAME} PUBLIC ecdh)
+target_link_libraries(${EXE_NAME} PUBLIC cbor)
+target_link_libraries(${EXE_NAME} PUBLIC bitproto)
+target_link_libraries(${EXE_NAME} PUBLIC compact25519)
+
+target_include_directories(${LIB_NAME} PUBLIC ${inc})
+target_link_libraries(${LIB_NAME} PUBLIC AES)
+target_link_libraries(${LIB_NAME} PUBLIC ecdh)
+target_link_libraries(${LIB_NAME} PUBLIC cbor)
+target_link_libraries(${LIB_NAME} PUBLIC bitproto)
+target_link_libraries(${LIB_NAME} PUBLIC compact25519)
