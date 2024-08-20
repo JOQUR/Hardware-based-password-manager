@@ -1,23 +1,16 @@
-proto test
+proto messaging
 
-enum Color : uint3 {
-    COLOR_UNKNOWN = 0
-    COLOR_RED = 1
-    COLOR_BLUE = 2
-    COLOR_GREEN = 3
+message AESEncrypt{
+    uint8[64] in = 1
+    uint16 size = 2
+    bool encrypt = 3
 }
 
-type Timestamp = int64
-type Dupa = int8
-
-message Shit {
-    bool jeden = 1
-    byte[8] array = 2
-    uint41 ptr = 3
+message AESResponse{
+    uint8[64] response = 1
+    uint16 size = 2
 }
-message Pen {
-    Color color = 1
-    Timestamp produced_at = 2
-    Dupa dupa = 3
-    Shit shit = 4
+
+message PublicKeyExchange{
+    uint8[32] pub_key = 1
 }

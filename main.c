@@ -127,25 +127,44 @@ int test_cbor(void)
     cbor_decref(&root);
 }
 
+#include "AES.h"
 int test_protobuf(void)
 {
-    struct Shit d = {.jeden = true, .array = {1, 2, 3, 4, 5, 6, 7, 8}, .ptr = 1};
-    struct Pen p = {COLOR_RED, 1611515729966, 23, d};
-    unsigned char s[BYTES_LENGTH_PEN] = {0};
+    uint8_t in[]  = { 0xf6, 0x9f, 0x24, 0x45, 0xdf, 0x4f, 0x9b, 0x17, 0xad, 0x2b, 0x41, 0x7b, 0xe6, 0x6c, 0x37, 0x10 };
+    uint8_t in_expected[]  = { 0xb2, 0xeb, 0x05, 0xe2, 0xc3, 0x9b, 0xe9, 0xfc, 0xda, 0x6c, 0x19, 0x07, 0x8c, 0x6a, 0x9d, 0x1b };
+    uint8_t iv[]  = { 0x39, 0xF2, 0x33, 0x69, 0xA9, 0xD9, 0xBA, 0xCF, 0xA5, 0x30, 0xE2, 0x63, 0x04, 0x23, 0x14, 0x61 };
+    uint8_t ret[64] = {0};
+    uint8_t key[] = { 0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe, 0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81, 0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7, 0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4};
+    struct AES_ctx ctx;
+    AES_init_ctx_iv(&ctx, key, iv);
 
-    // Encode p to buffer s.
-    EncodePen(&p, s);
+    struct AESEncrypt aes_encrypt = {.encrypt = true, .size = sizeof(in)};
+    struct AESResponse response;
 
-    // Decode buffer s to p1.
-    struct Pen p1 = {};
-    DecodePen(&p1, s);
+    memcpy(aes_encrypt.in, in, sizeof(in));
+    uint8_t buffer[sizeof(aes_encrypt)];
 
-    // Format p1 to buffer buf.
-    char buf[255] = {0};
-    JsonPen(&p1, buf);
-    printf("%s\n", buf);
+    EncodeAESEncrypt(&aes_encrypt, buffer);
+    PRINTS("Encoded");
 
-    return 0;
+    struct AESEncrypt a1 = {0};
+    DecodeAESEncrypt(&a1, buffer); 
+    PRINTS("Decoded");
+
+    if(a1.encrypt == true)
+    {
+        uint16_t size = a1.size;
+        AES_CBC_encrypt_buffer(&ctx, in, size);
+        PRINTS("CHECK");
+        memcpy(response.response, in, size);
+        response.size = size;
+    }
+    else
+    {
+
+    }
+    assert(memcmp(response.response, in_expected, response.size) == 0);
+    PRINTS("DONE");
 }
 
 void ecdh_demo(void)
@@ -208,7 +227,6 @@ static void generate_random_arr(uint8_t* buff, uint16_t size)
     }
 }
 
-#include "AES.h"
 void x25519_demo(void)
 {
     PRINTS("START");
