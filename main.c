@@ -141,7 +141,7 @@ int test_protobuf(void)
     struct AESEncrypt aes_encrypt = {.encrypt = true, .size = sizeof(in)};
     struct AESResponse response;
 
-    memcpy(aes_encrypt.in, in, sizeof(in));
+    memcpy(aes_encrypt.input, in, sizeof(in));
     uint8_t buffer[sizeof(aes_encrypt)];
 
     EncodeAESEncrypt(&aes_encrypt, buffer);

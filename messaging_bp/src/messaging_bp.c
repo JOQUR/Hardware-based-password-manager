@@ -14,7 +14,7 @@ void BpXXXJsonFormatArrayAESEncrypt1(void *data, struct BpJsonFormatContext *ctx
 }
 
 void BpFieldDescriptorsInitAESEncrypt(struct AESEncrypt *m, struct BpMessageFieldDescriptor *fds) {
-    fds[0] = BpMessageFieldDescriptor((void *)&(m->in), BpArray(512, 64 * sizeof(uint8_t), BpXXXProcessArrayAESEncrypt1, BpXXXJsonFormatArrayAESEncrypt1), "in");
+    fds[0] = BpMessageFieldDescriptor((void *)&(m->input), BpArray(512, 64 * sizeof(uint8_t), BpXXXProcessArrayAESEncrypt1, BpXXXJsonFormatArrayAESEncrypt1), "input");
     fds[1] = BpMessageFieldDescriptor((void *)&(m->size), BpUint(16, sizeof(uint16_t)), "size");
     fds[2] = BpMessageFieldDescriptor((void *)&(m->encrypt), BpBool(), "encrypt");
 }
@@ -147,5 +147,44 @@ int DecodePublicKeyExchange(struct PublicKeyExchange *m, unsigned char *s) {
 int JsonPublicKeyExchange(struct PublicKeyExchange *m, char *s) {
     struct BpJsonFormatContext ctx = BpJsonFormatContext(s);
     BpXXXJsonFormatPublicKeyExchange((void *)m, &ctx);
+    return ctx.n;
+}
+
+void BpFieldDescriptorsInitMsg(struct Msg *m, struct BpMessageFieldDescriptor *fds) {
+    fds[0] = BpMessageFieldDescriptor((void *)&(m->msg), BpEnum(3, sizeof(MesssageType)), "msg");
+    fds[1] = BpMessageFieldDescriptor((void *)&(m->res), BpEnum(3, sizeof(MessageResponse)), "res");
+}
+
+void BpXXXProcessMsg(void *data, struct BpProcessorContext *ctx) {
+    struct Msg *m = (struct Msg *)(data);
+    struct BpMessageFieldDescriptor field_descriptors[2];
+    BpFieldDescriptorsInitMsg(m, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 2, 6, field_descriptors);
+    BpEndecodeMessage(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatMsg(void *data, struct BpJsonFormatContext *ctx) {
+    struct Msg *m = (struct Msg *)(data);
+    struct BpMessageFieldDescriptor field_descriptors[2];
+    BpFieldDescriptorsInitMsg(m, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 2, 6, field_descriptors);
+    BpJsonFormatMessage(&descriptor, ctx, data);
+}
+
+int EncodeMsg(struct Msg *m, unsigned char *s) {
+    struct BpProcessorContext ctx = BpProcessorContext(true, s);
+    BpXXXProcessMsg((void *)m, &ctx);
+    return 0;
+}
+
+int DecodeMsg(struct Msg *m, unsigned char *s) {
+    struct BpProcessorContext ctx = BpProcessorContext(false, s);
+    BpXXXProcessMsg((void *)m, &ctx);
+    return 0;
+}
+
+int JsonMsg(struct Msg *m, char *s) {
+    struct BpJsonFormatContext ctx = BpJsonFormatContext(s);
+    BpXXXJsonFormatMsg((void *)m, &ctx);
     return ctx.n;
 }

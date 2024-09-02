@@ -20,7 +20,7 @@ extern "C" {
 #define BYTES_LENGTH_AES_ENCRYPT 67
 
 struct AESEncrypt {
-    uint8_t in[64]; // 512bit
+    uint8_t input[64]; // 512bit
     uint16_t size; // 16bit
     bool encrypt; // 1bit
 };
@@ -38,6 +38,23 @@ struct AESResponse {
 
 struct PublicKeyExchange {
     uint8_t pub_key[32]; // 256bit
+};
+
+typedef uint8_t MessageResponse; // 3bit
+
+#define ACK 0
+#define NACK 1
+
+typedef uint8_t MesssageType; // 3bit
+
+#define PUBLIC_KEY_ECHANGE 0
+
+// Number of bytes to encode struct Msg
+#define BYTES_LENGTH_MSG 1
+
+struct Msg {
+    MesssageType msg; // 3bit
+    MessageResponse res; // 3bit
 };
 
 // Encode struct AESEncrypt to given buffer s.
@@ -61,6 +78,13 @@ int DecodePublicKeyExchange(struct PublicKeyExchange *m, unsigned char *s);
 // Format struct PublicKeyExchange to a json format string.
 int JsonPublicKeyExchange(struct PublicKeyExchange *m, char *s);
 
+// Encode struct Msg to given buffer s.
+int EncodeMsg(struct Msg *m, unsigned char *s);
+// Decode struct Msg from given buffer s.
+int DecodeMsg(struct Msg *m, unsigned char *s);
+// Format struct Msg to a json format string.
+int JsonMsg(struct Msg *m, char *s);
+
 void BpXXXProcessAESEncrypt(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatAESEncrypt(void *data, struct BpJsonFormatContext *ctx);
 
@@ -69,6 +93,9 @@ void BpXXXJsonFormatAESResponse(void *data, struct BpJsonFormatContext *ctx);
 
 void BpXXXProcessPublicKeyExchange(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatPublicKeyExchange(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessMsg(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatMsg(void *data, struct BpJsonFormatContext *ctx);
 
 #if defined(__cplusplus)
 }
