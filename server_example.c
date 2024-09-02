@@ -75,7 +75,7 @@ void message_echange(int connfd)
     uint8_t sec1[X25519_KEY_SIZE];
     uint8_t pub1[X25519_KEY_SIZE];
     uint8_t shared1[X25519_SHARED_SIZE];
-    uint8_t* data = "dupajaja6969420";
+    uint8_t* data = "\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd\xe\xf";
     uint8_t dataarr[16] = {0};
     memcpy(dataarr, data, 16);
     generate_random_arr(seed1, sizeof(seed1));
