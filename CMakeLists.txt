@@ -9,6 +9,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 set(EXE_NAME    ${PROJECT_NAME}-exec)
 set(LIB_NAME    ${PROJECT_NAME}-lib)
+set(SRV         ${PROJECT_NAME}-srv)
 
 add_compile_definitions(COMPACT_DISABLE_ED25519)
 add_compile_definitions(COMPACT_DISABLE_X25519_DERIVE)
@@ -37,6 +38,7 @@ add_subdirectory(bitproto)
 
 add_executable(${EXE_NAME} main.c ${src} )
 add_library(${LIB_NAME} ${src})
+add_executable(${SRV} server_example.c ${src})
 
 target_include_directories(${EXE_NAME} PUBLIC ${inc})
 target_link_libraries(${EXE_NAME} PUBLIC AES)
@@ -51,3 +53,10 @@ target_link_libraries(${LIB_NAME} PUBLIC ecdh)
 target_link_libraries(${LIB_NAME} PUBLIC cbor)
 target_link_libraries(${LIB_NAME} PUBLIC bitproto)
 target_link_libraries(${LIB_NAME} PUBLIC compact25519)
+
+target_include_directories(${SRV} PUBLIC ${inc})
+target_link_libraries(${SRV} PUBLIC AES)
+target_link_libraries(${SRV} PUBLIC ecdh)
+target_link_libraries(${SRV} PUBLIC cbor)
+target_link_libraries(${SRV} PUBLIC bitproto)
+target_link_libraries(${SRV} PUBLIC compact25519)
