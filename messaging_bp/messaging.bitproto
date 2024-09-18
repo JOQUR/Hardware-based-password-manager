@@ -1,32 +1,36 @@
 proto messaging
 
-
-message AESEncrypt{
-    uint8[64] input = 1
-    uint16 size = 2
-    bool encrypt = 3
-}
-
-message AESResponse{
-    uint8[64] response = 1
-    uint16 size = 2
-}
-
 message PublicKeyExchange{
     uint8[32] pub_key = 1
 }
 
-enum MessageResponse : uint3 {
+enum Acknowledgment: uint3 {
     ACK = 0
     NACK = 1
 }
 
+enum ChannelStatus: uint8{
+    TERMINATED = 0
+    ESTABLISHING = 1
+    ESTABLISHED = 2
+    ERROR = 3
+}
+
+message MessageResponse{
+    Acknowledgment acknowledgment = 1
+    ChannelStatus statsu = 2
+}
+
 enum MesssageType : uint3 {
-    PUBLIC_KEY_ECHANGE = 0
-    
+    INITIALIZE_COMM = 0 // send public Key Exchange, rsp: Message Response with public Key Exchange
 }
 
 message Msg{
     MesssageType msg = 1
-    MessageResponse res = 2
+    PublicKeyExchange pke = 2
+}
+
+message Response{
+    MessageResponse generalStatus = 1
+    PublicKeyExchange pke = 2
 }

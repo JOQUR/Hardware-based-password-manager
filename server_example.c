@@ -7,10 +7,10 @@
 #include <sys/types.h> 
 #include <unistd.h> // read(), write(), close()
 #include <assert.h>
-#include "bitproto.h"
-#include "messaging_bp.h"
-#include "compact25519.h"
 #include "AES.h"
+#include "compact25519.h"
+#include "messaging_bp.h"
+#include "messenger.h"
 
 #define PORT 8070
 #define SA struct sockaddr 
@@ -66,7 +66,7 @@ void message_echange(int connfd)
 {
 
     struct Msg message_construct = {.msg = PUBLIC_KEY_ECHANGE, .res = ACK};
-    uint8_t iv[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+    uint8_t* iv = "\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd\xe\xf";
     struct AES_ctx ctx, ctx2;
     struct PublicKeyExchange pkExchange = {0};
     char buff[sizeof(message_construct)] = {0};
