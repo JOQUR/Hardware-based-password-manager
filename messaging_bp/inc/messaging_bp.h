@@ -16,86 +16,198 @@
 extern "C" {
 #endif
 
-// Number of bytes to encode struct AESEncrypt
-#define BYTES_LENGTH_AES_ENCRYPT 67
+typedef uint8_t MessageId; // 8bit
 
-struct AESEncrypt {
-    uint8_t input[64]; // 512bit
-    uint16_t size; // 16bit
-    bool encrypt; // 1bit
+// send public Key Exchange, rsp: InitializeCommRsp
+#define INITIALIZE_COMM 0
+// sends random 16 bytes as an challange, rsp: ChallangeRsp
+#define CHALLANGE 1
+// Finish Handshake sending true/false, rsp: HandshakeFinishedRsp
+#define HANDSHAKE_FINISHED 2
+// Add user
+#define CREATE_USER 3
+// Add users password and info
+#define ADD_PASSWORD 4
+
+// Number of bytes to encode struct InitializeComm
+#define BYTES_LENGTH_INITIALIZE_COMM 32
+
+struct InitializeComm {
+    uint8_t public_key[32]; // 256bit
 };
 
-// Number of bytes to encode struct AESResponse
-#define BYTES_LENGTH_AES_RESPONSE 66
+// Number of bytes to encode struct InitializeCommRsp
+#define BYTES_LENGTH_INITIALIZE_COMM_RSP 48
 
-struct AESResponse {
-    uint8_t response[64]; // 512bit
-    uint16_t size; // 16bit
+struct InitializeCommRsp {
+    uint8_t public_key[32]; // 256bit
+    uint8_t initialization_vector[16]; // 128bit
 };
 
-// Number of bytes to encode struct PublicKeyExchange
-#define BYTES_LENGTH_PUBLIC_KEY_EXCHANGE 32
+// Number of bytes to encode struct Challange
+#define BYTES_LENGTH_CHALLANGE 16
 
-struct PublicKeyExchange {
-    uint8_t pub_key[32]; // 256bit
+struct Challange {
+    uint8_t challange_buffer[16]; // 128bit
 };
 
-typedef uint8_t MessageResponse; // 3bit
+// Number of bytes to encode struct ChallangeRsp
+#define BYTES_LENGTH_CHALLANGE_RSP 16
 
-#define ACK 0
-#define NACK 1
-
-typedef uint8_t MesssageType; // 3bit
-
-#define PUBLIC_KEY_ECHANGE 0
-
-// Number of bytes to encode struct Msg
-#define BYTES_LENGTH_MSG 1
-
-struct Msg {
-    MesssageType msg; // 3bit
-    MessageResponse res; // 3bit
+struct ChallangeRsp {
+    uint8_t challange_buffer[16]; // 128bit
 };
 
-// Encode struct AESEncrypt to given buffer s.
-int EncodeAESEncrypt(struct AESEncrypt *m, unsigned char *s);
-// Decode struct AESEncrypt from given buffer s.
-int DecodeAESEncrypt(struct AESEncrypt *m, unsigned char *s);
-// Format struct AESEncrypt to a json format string.
-int JsonAESEncrypt(struct AESEncrypt *m, char *s);
+// Number of bytes to encode struct HandshakeFinished
+#define BYTES_LENGTH_HANDSHAKE_FINISHED 1
 
-// Encode struct AESResponse to given buffer s.
-int EncodeAESResponse(struct AESResponse *m, unsigned char *s);
-// Decode struct AESResponse from given buffer s.
-int DecodeAESResponse(struct AESResponse *m, unsigned char *s);
-// Format struct AESResponse to a json format string.
-int JsonAESResponse(struct AESResponse *m, char *s);
+struct HandshakeFinished {
+    bool ack; // 1bit
+};
 
-// Encode struct PublicKeyExchange to given buffer s.
-int EncodePublicKeyExchange(struct PublicKeyExchange *m, unsigned char *s);
-// Decode struct PublicKeyExchange from given buffer s.
-int DecodePublicKeyExchange(struct PublicKeyExchange *m, unsigned char *s);
-// Format struct PublicKeyExchange to a json format string.
-int JsonPublicKeyExchange(struct PublicKeyExchange *m, char *s);
+// Number of bytes to encode struct HandshakeFinishedRsp
+#define BYTES_LENGTH_HANDSHAKE_FINISHED_RSP 1
 
-// Encode struct Msg to given buffer s.
-int EncodeMsg(struct Msg *m, unsigned char *s);
-// Decode struct Msg from given buffer s.
-int DecodeMsg(struct Msg *m, unsigned char *s);
-// Format struct Msg to a json format string.
-int JsonMsg(struct Msg *m, char *s);
+struct HandshakeFinishedRsp {
+    bool ack; // 1bit
+};
 
-void BpXXXProcessAESEncrypt(void *data, struct BpProcessorContext *ctx);
-void BpXXXJsonFormatAESEncrypt(void *data, struct BpJsonFormatContext *ctx);
+// Number of bytes to encode struct CreateUser
+#define BYTES_LENGTH_CREATE_USER 48
 
-void BpXXXProcessAESResponse(void *data, struct BpProcessorContext *ctx);
-void BpXXXJsonFormatAESResponse(void *data, struct BpJsonFormatContext *ctx);
+struct CreateUser {
+    uint8_t username[16]; // 128bit
+    uint8_t password_hash[32]; // 256bit
+};
 
-void BpXXXProcessPublicKeyExchange(void *data, struct BpProcessorContext *ctx);
-void BpXXXJsonFormatPublicKeyExchange(void *data, struct BpJsonFormatContext *ctx);
+// Number of bytes to encode struct CreateUserRsp
+#define BYTES_LENGTH_CREATE_USER_RSP 1
 
-void BpXXXProcessMsg(void *data, struct BpProcessorContext *ctx);
-void BpXXXJsonFormatMsg(void *data, struct BpJsonFormatContext *ctx);
+struct CreateUserRsp {
+    bool ack; // 1bit
+};
+
+// Number of bytes to encode struct Messages
+#define BYTES_LENGTH_MESSAGES 98
+
+struct Messages {
+    MessageId id; // 8bit
+    struct InitializeComm init_comm; // 256bit
+    struct Challange challange; // 128bit
+    struct HandshakeFinished handshake_finished; // 1bit
+    struct CreateUser user_creation; // 384bit
+};
+
+// Number of bytes to encode struct Responses
+#define BYTES_LENGTH_RESPONSES 66
+
+struct Responses {
+    MessageId id; // 8bit
+    struct InitializeCommRsp init_comm; // 384bit
+    struct ChallangeRsp challange; // 128bit
+    struct HandshakeFinishedRsp handshake_finished; // 1bit
+    struct CreateUserRsp user_creation; // 1bit
+};
+
+// Encode struct InitializeComm to given buffer s.
+int EncodeInitializeComm(struct InitializeComm *m, unsigned char *s);
+// Decode struct InitializeComm from given buffer s.
+int DecodeInitializeComm(struct InitializeComm *m, unsigned char *s);
+// Format struct InitializeComm to a json format string.
+int JsonInitializeComm(struct InitializeComm *m, char *s);
+
+// Encode struct InitializeCommRsp to given buffer s.
+int EncodeInitializeCommRsp(struct InitializeCommRsp *m, unsigned char *s);
+// Decode struct InitializeCommRsp from given buffer s.
+int DecodeInitializeCommRsp(struct InitializeCommRsp *m, unsigned char *s);
+// Format struct InitializeCommRsp to a json format string.
+int JsonInitializeCommRsp(struct InitializeCommRsp *m, char *s);
+
+// Encode struct Challange to given buffer s.
+int EncodeChallange(struct Challange *m, unsigned char *s);
+// Decode struct Challange from given buffer s.
+int DecodeChallange(struct Challange *m, unsigned char *s);
+// Format struct Challange to a json format string.
+int JsonChallange(struct Challange *m, char *s);
+
+// Encode struct ChallangeRsp to given buffer s.
+int EncodeChallangeRsp(struct ChallangeRsp *m, unsigned char *s);
+// Decode struct ChallangeRsp from given buffer s.
+int DecodeChallangeRsp(struct ChallangeRsp *m, unsigned char *s);
+// Format struct ChallangeRsp to a json format string.
+int JsonChallangeRsp(struct ChallangeRsp *m, char *s);
+
+// Encode struct HandshakeFinished to given buffer s.
+int EncodeHandshakeFinished(struct HandshakeFinished *m, unsigned char *s);
+// Decode struct HandshakeFinished from given buffer s.
+int DecodeHandshakeFinished(struct HandshakeFinished *m, unsigned char *s);
+// Format struct HandshakeFinished to a json format string.
+int JsonHandshakeFinished(struct HandshakeFinished *m, char *s);
+
+// Encode struct HandshakeFinishedRsp to given buffer s.
+int EncodeHandshakeFinishedRsp(struct HandshakeFinishedRsp *m, unsigned char *s);
+// Decode struct HandshakeFinishedRsp from given buffer s.
+int DecodeHandshakeFinishedRsp(struct HandshakeFinishedRsp *m, unsigned char *s);
+// Format struct HandshakeFinishedRsp to a json format string.
+int JsonHandshakeFinishedRsp(struct HandshakeFinishedRsp *m, char *s);
+
+// Encode struct CreateUser to given buffer s.
+int EncodeCreateUser(struct CreateUser *m, unsigned char *s);
+// Decode struct CreateUser from given buffer s.
+int DecodeCreateUser(struct CreateUser *m, unsigned char *s);
+// Format struct CreateUser to a json format string.
+int JsonCreateUser(struct CreateUser *m, char *s);
+
+// Encode struct CreateUserRsp to given buffer s.
+int EncodeCreateUserRsp(struct CreateUserRsp *m, unsigned char *s);
+// Decode struct CreateUserRsp from given buffer s.
+int DecodeCreateUserRsp(struct CreateUserRsp *m, unsigned char *s);
+// Format struct CreateUserRsp to a json format string.
+int JsonCreateUserRsp(struct CreateUserRsp *m, char *s);
+
+// Encode struct Messages to given buffer s.
+int EncodeMessages(struct Messages *m, unsigned char *s);
+// Decode struct Messages from given buffer s.
+int DecodeMessages(struct Messages *m, unsigned char *s);
+// Format struct Messages to a json format string.
+int JsonMessages(struct Messages *m, char *s);
+
+// Encode struct Responses to given buffer s.
+int EncodeResponses(struct Responses *m, unsigned char *s);
+// Decode struct Responses from given buffer s.
+int DecodeResponses(struct Responses *m, unsigned char *s);
+// Format struct Responses to a json format string.
+int JsonResponses(struct Responses *m, char *s);
+
+void BpXXXProcessInitializeComm(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatInitializeComm(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessInitializeCommRsp(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatInitializeCommRsp(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessChallange(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatChallange(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessChallangeRsp(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatChallangeRsp(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessHandshakeFinished(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatHandshakeFinished(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessHandshakeFinishedRsp(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatHandshakeFinishedRsp(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessCreateUser(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatCreateUser(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessCreateUserRsp(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatCreateUserRsp(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessMessages(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatMessages(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessResponses(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatResponses(void *data, struct BpJsonFormatContext *ctx);
 
 #if defined(__cplusplus)
 }

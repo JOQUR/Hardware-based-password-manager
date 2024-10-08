@@ -15,6 +15,8 @@ ${PROJECT_SOURCE_DIR}/ECDH/src/ecdh.c
 ${PROJECT_SOURCE_DIR}/messaging_bp/src/messaging_bp.c 
 ${PROJECT_SOURCE_DIR}/messenger/src/messenger.c 
 ${PROJECT_SOURCE_DIR}/user_store/src/user_store.c 
+${PROJECT_SOURCE_DIR}/debug/debug.c
+${PROJECT_SOURCE_DIR}/crypto_ctx/src/crypto_ctx.c
 )
 
 add_executable(${EXECUTABLE} server_example.c ${SRC_FILES})
@@ -26,10 +28,12 @@ target_include_directories(${EXECUTABLE}
         PUBLIC ${PROJECT_SOURCE_DIR}/compact25519/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/customer_bank/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/debug
+        PUBLIC ${PROJECT_SOURCE_DIR}/utils
         PUBLIC ${PROJECT_SOURCE_DIR}/ECDH/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/messaging_bp/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/messenger/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/user_store/inc/
+        PUBLIC ${PROJECT_SOURCE_DIR}/crypto_ctx/inc/
 )
 
 target_link_directories(${EXECUTABLE} PUBLIC
@@ -42,4 +46,6 @@ target_link_directories(${EXECUTABLE} PUBLIC
         ${PROJECT_SOURCE_DIR}/messaging_bp/src/messaging_bp.c
         ${PROJECT_SOURCE_DIR}/messenger/src/messenger.c
         ${PROJECT_SOURCE_DIR}/user_store/src/user_store.c
+        ${PROJECT_SOURCE_DIR}/debug/debug.c
+        ${PROJECT_SOURCE_DIR}/crypto_ctx/src/crypto_ctx.c
 )

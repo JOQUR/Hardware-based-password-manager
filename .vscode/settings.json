@@ -5,6 +5,17 @@
         "time.h": "c",
         "test_ecdh.h": "c",
         "maps.h": "c",
-        "aes.h": "c"
+        "aes.h": "c",
+        "messenger.h": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "system_error": "c",
+        "string.h": "c",
+        "messaging_bp.h": "c",
+        "stdint.h": "c",
+        "debug.h": "c",
+        "standard_def.h": "c"
     }
 }

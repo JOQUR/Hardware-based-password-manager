@@ -7,15 +7,14 @@
 #include <sys/types.h> 
 #include <unistd.h> // read(), write(), close()
 #include <assert.h>
-#include "AES.h"
-#include "compact25519.h"
-#include "messaging_bp.h"
 #include "messenger.h"
+#include "crypto_ctx.h"
 
 #define PORT 8070
 #define SA struct sockaddr 
 
 void message_echange(int connfd);
+static void prepare_and_read(int connfd, array_t* message, array_t* response);
 
 static void generate_random_arr(uint8_t* buff, uint16_t size)
 {
@@ -64,59 +63,46 @@ int main(void)
 
 void message_echange(int connfd)
 {
+    uint8_t rcv_buffer[256] = {0};
+    uint8_t send_buffer[256] = {0};
+    array_t message = {0};
+    array_t response = {0};
+    bool result = true;
+    message.buffer = rcv_buffer;
+    response.buffer = send_buffer;
+    response.size = sizeof(send_buffer);
 
-    struct Msg message_construct = {.msg = PUBLIC_KEY_ECHANGE, .res = ACK};
-    uint8_t* iv = "\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd\xe\xf";
-    struct AES_ctx ctx, ctx2;
-    struct PublicKeyExchange pkExchange = {0};
-    char buff[sizeof(message_construct)] = {0};
-    char pkBuff[sizeof(pkExchange)] = {0};
-    uint8_t seed1[X25519_KEY_SIZE];
-    uint8_t sec1[X25519_KEY_SIZE];
-    uint8_t pub1[X25519_KEY_SIZE];
-    uint8_t shared1[X25519_SHARED_SIZE];
-    uint8_t* data = "\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd\xe\xf";
-    uint8_t dataarr[16] = {0};
-    memcpy(dataarr, data, 16);
-    generate_random_arr(seed1, sizeof(seed1));
-    compact_x25519_keygen(sec1, pub1, seed1);
-    EncodeMsg(&message_construct, buff);
-
-    // send ack
-    send(connfd, buff, sizeof(buff), 0);
-
-    // read pub key from client
-    int valread = read(connfd, pkBuff, sizeof(pkBuff));
-    if(valread != sizeof(pkBuff))
+    result = cryptoctx_init();
+    prepare_and_read(connfd, &message, &response);
+    CHECK_STATUS(result, messenger_process_message(&message, &response));
+    if (result == true)
     {
-        printf("FAILED\r\n");
+        send(connfd, response.buffer, response.size, 0);
     }
 
-    DecodePublicKeyExchange(&pkExchange, pkBuff);
-    
-    // using external pubkey calculate shared key
-    compact_x25519_shared(shared1, sec1, pkExchange.pub_key);
-    AES_init_ctx_iv(&ctx, shared1, iv);
-    AES_CBC_encrypt_buffer(&ctx, dataarr, 16);
-    // for (int i = 0; i < sizeof(pkBuff); i++)
-    // {
-    //     printf("pkBuff[%d] = %x\r\n", i, pkExchange.pub_key[i]);
-    // }
 
-    // zero pub key struct
-    memset(pkExchange.pub_key, 0x00, sizeof(pkExchange.pub_key));
+    prepare_and_read(connfd, &message, &response);
+    CHECK_STATUS(result, messenger_process_message(&message, &response));
+    if (result == true)
+    {
+        send(connfd, response.buffer, response.size, 0);
+    }
 
-    // send server public key
-    memcpy(pkExchange.pub_key, pub1, sizeof(pub1));
-    EncodePublicKeyExchange(&pkExchange, pkBuff);
-    send(connfd, pkBuff, sizeof(pkBuff), 0);
-    for (int i = 0; i < sizeof(sec1); i++)
+    prepare_and_read(connfd, &message, &response);
+    CHECK_STATUS(result, messenger_process_message(&message, &response));
+    if (result == true)
     {
-        printf("pubkey[%d] = %x\r\n", i, pub1[i]);
+        send(connfd, response.buffer, response.size, 0);
     }
-    for (int i = 0; i < sizeof(shared1); i++)
-    {
-        printf("shared secret[%d] = %x\r\n", i, shared1[i]);
-    }
-    send(connfd, dataarr, 16, 0);
+    cryptoctx_deinit();
+}
+
+
+static void prepare_and_read(int connfd, array_t* message, array_t* response)
+{
+    memset(message->buffer, 0x00, 256);
+    memset(response->buffer, 0x00, 256);
+    size_t valread = read(connfd, message->buffer, 256);
+    message->size = valread;
+    response->size = 256;
 }

@@ -1,36 +1,60 @@
 proto messaging
 
-message PublicKeyExchange{
-    uint8[32] pub_key = 1
+enum MessageId : uint8 {
+    // send public Key Exchange, rsp: InitializeCommRsp
+    INITIALIZE_COMM = 0 
+    // sends random 16 bytes as an challange, rsp: ChallangeRsp
+    CHALLANGE = 1 
+    // Finish Handshake sending true/false, rsp: HandshakeFinishedRsp
+    HANDSHAKE_FINISHED = 2 
+    // Add user
+    CREATE_USER = 3
+    // Add users password and info
+    ADD_PASSWORD = 4
 }
 
-enum Acknowledgment: uint3 {
-    ACK = 0
-    NACK = 1
+message InitializeComm{
+    uint8[32] public_key = 1
+}
+message InitializeCommRsp{
+    uint8[32] public_key = 1
+    uint8[16] initialization_vector = 2
 }
 
-enum ChannelStatus: uint8{
-    TERMINATED = 0
-    ESTABLISHING = 1
-    ESTABLISHED = 2
-    ERROR = 3
+message Challange{
+    uint8[16] challange_buffer = 1
+}
+message ChallangeRsp{
+    uint8[16] challange_buffer = 1
 }
 
-message MessageResponse{
-    Acknowledgment acknowledgment = 1
-    ChannelStatus statsu = 2
+message HandshakeFinished{
+    bool ack = 1
+}
+message HandshakeFinishedRsp{
+    bool ack = 1
 }
 
-enum MesssageType : uint3 {
-    INITIALIZE_COMM = 0 // send public Key Exchange, rsp: Message Response with public Key Exchange
+message CreateUser{
+    uint8[16] username = 1
+    uint8[32] password_hash = 2
 }
 
-message Msg{
-    MesssageType msg = 1
-    PublicKeyExchange pke = 2
+message CreateUserRsp{
+    bool ack = 1   
 }
 
-message Response{
-    MessageResponse generalStatus = 1
-    PublicKeyExchange pke = 2
+message Messages {
+    MessageId id = 1
+    InitializeComm init_comm = 2
+    Challange challange = 3
+    HandshakeFinished handshake_finished = 4
+    CreateUser user_creation = 5
+}
+message Responses {
+    MessageId id = 1
+    InitializeCommRsp init_comm = 2
+    ChallangeRsp challange = 3
+    HandshakeFinishedRsp handshake_finished = 4
+    CreateUserRsp user_creation = 5
 }
