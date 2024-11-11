@@ -11,7 +11,7 @@ class FailedToLoginException(Exception):
 class User:
     def __init__(self, username, password):
         isCreated = self.__isUserCreated()
-        if self.__salt == "":
+        if self.__salt == "" and isCreated == False:
             self.__salt = ICrypto.getRandomByteArray(16)
         password, self.__salt = ICrypto.PBKDF2(password.encode() + username.encode(), self.__salt)
         if isCreated == False:
