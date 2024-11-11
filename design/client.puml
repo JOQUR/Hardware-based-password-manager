@@ -1,0 +1,120 @@
+'
+' This PlantUML diagram represents the design of a hardware-based password manager client.
+'
+' The main components of the design are:
+' 
+' - Client: Represents the main client application that handles user authentication and manages stages.
+' - User: Represents a user with a username and a hashed password.
+' - State: Enum representing different states of the handshake process.
+' - AppState: Enum representing different states of the application.
+' - IStage: Interface for different stages in the client application.
+' - Handshake: Handles the handshake process with the server, including preparing and processing messages.
+' - Application: Manages the application state and processes various application-specific messages.
+' - ConnectionHandler: Manages the connection between the client and the server.
+' - Crypto: Interface for cryptographic operations.
+' - AesCBCCrypto: Implementation of the Crypto interface using AES-CBC encryption.
+' - AESGCMCrypto: Implementation of the Crypto interface using AES-GCM encryption.
+'
+' Relationships:
+' 
+' - Client has a composition relationship with IStage and User.
+' - Handshake and Application implement the IStage interface.
+' - Handshake and Application have a composition relationship with Crypto.
+' - Handshake has an aggregation relationship with State.
+' - Client has an aggregation relationship with State.
+' - ConnectionHandler has a composition relationship with Client.
+' - AesCBCCrypto and AESGCMCrypto implement the Crypto interface.
+' - Application has an aggregation relationship with AppState.
+
+@startuml client
+
+class Client {
+    - __crypto_ctx : Crypto
+    - __stage : IStage
+    - __user : User
+
+    + __init__(login: str, password: str): None
+    - __calculate_hash(password: str): bytearray
+}
+
+class User {
+    - username : bytearray
+    - password_hash : bytearray
+    + __init__(username: bytearray, password_hash: bytearray): None
+    - __verifyUser(None): bool
+}
+
+enum State {
+    HELLO
+    CHALLENGE
+    AUTHENTICATED
+    APP_STARTED
+}
+
+enum AppState {
+}
+
+interface IStage {
+
+}
+
+class Handshake {
+    - __crypto_ctx : Crypto
+    - __state : State
+    + processMessage(message: bytearray): bytearray | None
+    + prepareHello(): bytearray
+    + prepareChallenge(): bytearray
+    + prepareFinishHandShake(): bytearray
+    + getState(): State
+    - __processHelloRsp(response: bytearray): bytearray
+    - __processChallengeRsp(response: bytearray): None
+}
+
+class Application{
+    - __crypto_ctx : Crypto
+    - __state : ApplicationState
+    + processMessage(message: bytearray): bytearray | None
+    + prepareAddEntry(): bytearray
+    + prepareReadEntry(): bytearray
+    + prepareModify(): bytearray
+    + prepareGenerate(): bytearray
+    + prepareReadAll(): bytearray
+}
+
+class ConnectionHandler {
+    - __client : Client
+    - __socket : Socket
+    + __init__(client: Client, socket: Socket): None
+}
+
+interface Crypto {
+    + __init__(): None
+    + encrypt(data: bytearray): bytearray
+    + decrypt(data: bytearray): bytearray
+}
+
+class AesCBCCrypto {
+    + __init__(): None
+    + encrypt(data: bytearray): bytearray
+    + decrypt(data: bytearray): bytearray
+}
+
+class AESGCMCrypto {
+    + __init__(): None
+    + encrypt(data: bytearray): bytearray
+    + decrypt(data: bytearray): bytearray
+}
+
+Client *.. IStage
+Handshake <|-- IStage
+Application <|-- IStage
+Client *-- User
+Handshake o-- State
+Client o-- State
+ConnectionHandler *-- Client
+Handshake *.. Crypto
+Application *.. Crypto
+AesCBCCrypto <|-- Crypto 
+AESGCMCrypto <|-- Crypto 
+Application o-- AppState
+@enduml

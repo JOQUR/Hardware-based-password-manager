@@ -1,6 +1,7 @@
 
 #include "stdint.h"
 #include "stdio.h"
+
 #ifndef NDEBUG
     #define PRINT(X)    printf("%s = %02hhX\r\n", __func__, X)
     #define PRINTS(X)    printf("%s: %s\n", __func__, X)

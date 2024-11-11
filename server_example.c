@@ -16,6 +16,8 @@
 void message_echange(int connfd);
 static void prepare_and_read(int connfd, array_t* message, array_t* response);
 
+message_processor processor_cbk = messenger_process_message;
+
 static void generate_random_arr(uint8_t* buff, uint16_t size)
 {
     for(uint16_t i = 0; i < size; i++)
@@ -68,31 +70,25 @@ void message_echange(int connfd)
     array_t message = {0};
     array_t response = {0};
     bool result = true;
+    bool send_response = false;
     message.buffer = rcv_buffer;
     response.buffer = send_buffer;
     response.size = sizeof(send_buffer);
 
     result = cryptoctx_init();
-    prepare_and_read(connfd, &message, &response);
-    CHECK_STATUS(result, messenger_process_message(&message, &response));
-    if (result == true)
-    {
-        send(connfd, response.buffer, response.size, 0);
-    }
 
-
-    prepare_and_read(connfd, &message, &response);
-    CHECK_STATUS(result, messenger_process_message(&message, &response));
-    if (result == true)
+    while(true)
     {
-        send(connfd, response.buffer, response.size, 0);
-    }
-
-    prepare_and_read(connfd, &message, &response);
-    CHECK_STATUS(result, messenger_process_message(&message, &response));
-    if (result == true)
-    {
-        send(connfd, response.buffer, response.size, 0);
+        if(result == false)
+        {
+            break;
+        }
+        prepare_and_read(connfd, &message, &response);
+        CHECK_STATUS(result, processor_cbk(&message, &response, &send_response));
+        if (result == true && (send_response == true))
+        {
+            send(connfd, response.buffer, response.size, 0);
+        }
     }
     cryptoctx_deinit();
 }
@@ -100,8 +96,8 @@ void message_echange(int connfd)
 
 static void prepare_and_read(int connfd, array_t* message, array_t* response)
 {
-    memset(message->buffer, 0x00, 256);
-    memset(response->buffer, 0x00, 256);
+    memset(message->buffer, 0xff, 256);
+    memset(response->buffer, 0xff, 256);
     size_t valread = read(connfd, message->buffer, 256);
     message->size = valread;
     response->size = 256;

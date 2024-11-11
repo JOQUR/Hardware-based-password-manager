@@ -16,6 +16,8 @@
         "messaging_bp.h": "c",
         "stdint.h": "c",
         "debug.h": "c",
-        "standard_def.h": "c"
+        "standard_def.h": "c",
+        "stdbool.h": "c",
+        "app.h": "c"
     }
 }
