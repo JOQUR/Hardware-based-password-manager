@@ -2,7 +2,6 @@ from Handshake import Handshake
 from Application import Application
 from User import User
 from messaging_bp import *
-from AesCBCCrypto import AesCBCCrypto
 from State import *
 from gcm import *
 
