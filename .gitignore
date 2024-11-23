@@ -12,3 +12,4 @@ _deps
 build/
 .venv
 .vscode
+python_cli/__pycache__
