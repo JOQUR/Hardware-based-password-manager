@@ -1,3 +1,11 @@
+/**
+ * @file messenger.h
+ * @brief Header file for the messenger module.
+ *
+ * This file contains the declarations and macros for the messenger module
+ * used in the Hardware-based Password Manager project.
+ */
+
 #ifndef MESSENGER_H_ 
 #define MESSENGER_H_
 
@@ -12,6 +20,9 @@ typedef enum
     ERROR
 } ChannelStatus_t;
 
+/**
+ * @brief Structure representing the context of a communication channel.
+ */
 typedef struct ChannelContext
 {
     ChannelStatus_t status;
@@ -20,6 +31,6 @@ typedef struct ChannelContext
 } ChannelContext_t;
 
 
-bool messenger_process_message(array_t* buffer, array_t* response);
+bool messenger_process_message(array_t* message, array_t* response, bool* send_reponse);
 
 #endif

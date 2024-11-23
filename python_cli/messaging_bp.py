@@ -17,10 +17,8 @@ class MessageId(IntEnum): # 8bit
     CHALLANGE = 1
 # Finish Handshake sending true/false, rsp: HandshakeFinishedRsp
     HANDSHAKE_FINISHED = 2
-# Add user
-    CREATE_USER = 3
-# Add users password and info
-    ADD_PASSWORD = 4
+# Start the proper App
+    START_APP = 4
 
 
 # Aliases for backwards compatibility
@@ -30,18 +28,15 @@ INITIALIZE_COMM: MessageId = MessageId.INITIALIZE_COMM
 CHALLANGE: MessageId = MessageId.CHALLANGE
 # Finish Handshake sending true/false, rsp: HandshakeFinishedRsp
 HANDSHAKE_FINISHED: MessageId = MessageId.HANDSHAKE_FINISHED
-# Add user
-CREATE_USER: MessageId = MessageId.CREATE_USER
-# Add users password and info
-ADD_PASSWORD: MessageId = MessageId.ADD_PASSWORD
+# Start the proper App
+START_APP: MessageId = MessageId.START_APP
 
 
 _MESSAGEID_VALUE_TO_NAME_MAP: Dict[MessageId, str] = {
     MessageId.INITIALIZE_COMM: "INITIALIZE_COMM",
     MessageId.CHALLANGE: "CHALLANGE",
     MessageId.HANDSHAKE_FINISHED: "HANDSHAKE_FINISHED",
-    MessageId.CREATE_USER: "CREATE_USER",
-    MessageId.ADD_PASSWORD: "ADD_PASSWORD",
+    MessageId.START_APP: "START_APP",
 }
 
 def bp_processor_MessageId() -> bp.Processor:
@@ -106,10 +101,9 @@ class InitializeComm(bp.MessageBase):
 @dataclass
 class InitializeCommRsp(bp.MessageBase):
     # Number of bytes to serialize class InitializeCommRsp
-    BYTES_LENGTH: ClassVar[int] = 48
+    BYTES_LENGTH: ClassVar[int] = 32
 
     public_key: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
-    initialization_vector: List[int] = field(default_factory=lambda: [0 for _ in range(16)]) # 128bit
 
     def __post_init__(self):
         pass
@@ -121,22 +115,17 @@ class InitializeCommRsp(bp.MessageBase):
     def bp_processor(self) -> bp.Processor:
         field_processors: List[bp.Processor] = [
             bp.MessageFieldProcessor(1, bp.Array(False, 32, bp.Uint(8))),
-            bp.MessageFieldProcessor(2, bp.Array(False, 16, bp.Uint(8))),
         ]
-        return bp.MessageProcessor(False, 384, field_processors)
+        return bp.MessageProcessor(False, 256, field_processors)
 
     def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
         if di.field_number == 1:
             self.public_key[di.i(0)] |= (int(b) << lshift)
-        if di.field_number == 2:
-            self.initialization_vector[di.i(0)] |= (int(b) << lshift)
         return
 
     def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
         if di.field_number == 1:
             return (self.public_key[di.i(0)] >> rshift) & 255
-        if di.field_number == 2:
-            return (self.initialization_vector[di.i(0)] >> rshift) & 255
         return bp.byte(0)  # Won't reached
 
     def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
@@ -167,9 +156,9 @@ class InitializeCommRsp(bp.MessageBase):
 @dataclass
 class Challange(bp.MessageBase):
     # Number of bytes to serialize class Challange
-    BYTES_LENGTH: ClassVar[int] = 16
+    BYTES_LENGTH: ClassVar[int] = 32
 
-    challange_buffer: List[int] = field(default_factory=lambda: [0 for _ in range(16)]) # 128bit
+    challange_buffer: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
 
     def __post_init__(self):
         pass
@@ -180,9 +169,9 @@ class Challange(bp.MessageBase):
 
     def bp_processor(self) -> bp.Processor:
         field_processors: List[bp.Processor] = [
-            bp.MessageFieldProcessor(1, bp.Array(False, 16, bp.Uint(8))),
+            bp.MessageFieldProcessor(1, bp.Array(False, 32, bp.Uint(8))),
         ]
-        return bp.MessageProcessor(False, 128, field_processors)
+        return bp.MessageProcessor(False, 256, field_processors)
 
     def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
         if di.field_number == 1:
@@ -222,9 +211,11 @@ class Challange(bp.MessageBase):
 @dataclass
 class ChallangeRsp(bp.MessageBase):
     # Number of bytes to serialize class ChallangeRsp
-    BYTES_LENGTH: ClassVar[int] = 16
+    BYTES_LENGTH: ClassVar[int] = 60
 
-    challange_buffer: List[int] = field(default_factory=lambda: [0 for _ in range(16)]) # 128bit
+    challange_buffer: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
+    initialization_vector: List[int] = field(default_factory=lambda: [0 for _ in range(12)]) # 96bit
+    tag: List[int] = field(default_factory=lambda: [0 for _ in range(16)]) # 128bit
 
     def __post_init__(self):
         pass
@@ -235,18 +226,28 @@ class ChallangeRsp(bp.MessageBase):
 
     def bp_processor(self) -> bp.Processor:
         field_processors: List[bp.Processor] = [
-            bp.MessageFieldProcessor(1, bp.Array(False, 16, bp.Uint(8))),
+            bp.MessageFieldProcessor(1, bp.Array(False, 32, bp.Uint(8))),
+            bp.MessageFieldProcessor(2, bp.Array(False, 12, bp.Uint(8))),
+            bp.MessageFieldProcessor(3, bp.Array(False, 16, bp.Uint(8))),
         ]
-        return bp.MessageProcessor(False, 128, field_processors)
+        return bp.MessageProcessor(False, 480, field_processors)
 
     def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
         if di.field_number == 1:
             self.challange_buffer[di.i(0)] |= (int(b) << lshift)
+        if di.field_number == 2:
+            self.initialization_vector[di.i(0)] |= (int(b) << lshift)
+        if di.field_number == 3:
+            self.tag[di.i(0)] |= (int(b) << lshift)
         return
 
     def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
         if di.field_number == 1:
             return (self.challange_buffer[di.i(0)] >> rshift) & 255
+        if di.field_number == 2:
+            return (self.initialization_vector[di.i(0)] >> rshift) & 255
+        if di.field_number == 3:
+            return (self.tag[di.i(0)] >> rshift) & 255
         return bp.byte(0)  # Won't reached
 
     def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
@@ -385,8 +386,213 @@ class HandshakeFinishedRsp(bp.MessageBase):
 
 
 @dataclass
-class CreateUser(bp.MessageBase):
-    # Number of bytes to serialize class CreateUser
+class Messages(bp.MessageBase):
+    # Number of bytes to serialize class Messages
+    BYTES_LENGTH: ClassVar[int] = 66
+
+    id: Union[int, MessageId] = MessageId.INITIALIZE_COMM
+    # This field is a proxy to hold integer value of enum field 'id'
+    _enum_field_proxy__id: int = field(init=False, repr=False) # 8bit
+    init_comm: InitializeComm = field(default_factory=InitializeComm) # 256bit
+    challange: Challange = field(default_factory=Challange) # 256bit
+    handshake_finished: HandshakeFinished = field(default_factory=HandshakeFinished) # 1bit
+    start_app: bool = False # 1bit
+
+    def __post_init__(self):
+        # initialize handling of enum field 'id' as `enum.IntEnum`
+        if not isinstance(getattr(Messages, "id", False), property):
+            self._enum_field_proxy__id = self.id
+            Messages.id = property(Messages._get_id, Messages._set_id)  # type: ignore
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def _get_id(self) -> MessageId:
+        """property getter for enum proxy field"""
+        return MessageId(self._enum_field_proxy__id)
+
+    def _set_id(self, val):
+        """property setter for enum proxy field"""
+        self._enum_field_proxy__id = val
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp_processor_MessageId()),
+            bp.MessageFieldProcessor(2, InitializeComm().bp_processor()),
+            bp.MessageFieldProcessor(3, Challange().bp_processor()),
+            bp.MessageFieldProcessor(4, HandshakeFinished().bp_processor()),
+            bp.MessageFieldProcessor(5, bp.Bool()),
+        ]
+        return bp.MessageProcessor(False, 522, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.id |= (MessageId(b) << lshift)
+        if di.field_number == 5:
+            self.start_app = bool(b)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (self.id >> rshift) & 255
+        if di.field_number == 5:
+            return (int(self.start_app) >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        if di.field_number == 2:
+            return self.init_comm
+        if di.field_number == 3:
+            return self.challange
+        if di.field_number == 4:
+            return self.handshake_finished
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@dataclass
+class Responses(bp.MessageBase):
+    # Number of bytes to serialize class Responses
+    BYTES_LENGTH: ClassVar[int] = 94
+
+    id: Union[int, MessageId] = MessageId.INITIALIZE_COMM
+    # This field is a proxy to hold integer value of enum field 'id'
+    _enum_field_proxy__id: int = field(init=False, repr=False) # 8bit
+    init_comm: InitializeCommRsp = field(default_factory=InitializeCommRsp) # 256bit
+    challange: ChallangeRsp = field(default_factory=ChallangeRsp) # 480bit
+    handshake_finished: HandshakeFinishedRsp = field(default_factory=HandshakeFinishedRsp) # 1bit
+
+    def __post_init__(self):
+        # initialize handling of enum field 'id' as `enum.IntEnum`
+        if not isinstance(getattr(Responses, "id", False), property):
+            self._enum_field_proxy__id = self.id
+            Responses.id = property(Responses._get_id, Responses._set_id)  # type: ignore
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def _get_id(self) -> MessageId:
+        """property getter for enum proxy field"""
+        return MessageId(self._enum_field_proxy__id)
+
+    def _set_id(self, val):
+        """property setter for enum proxy field"""
+        self._enum_field_proxy__id = val
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp_processor_MessageId()),
+            bp.MessageFieldProcessor(2, InitializeCommRsp().bp_processor()),
+            bp.MessageFieldProcessor(3, ChallangeRsp().bp_processor()),
+            bp.MessageFieldProcessor(4, HandshakeFinishedRsp().bp_processor()),
+        ]
+        return bp.MessageProcessor(False, 745, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.id |= (MessageId(b) << lshift)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (self.id >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        if di.field_number == 2:
+            return self.init_comm
+        if di.field_number == 3:
+            return self.challange
+        if di.field_number == 4:
+            return self.handshake_finished
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@unique
+class AppNode(IntEnum): # 8bit
+# Add password
+    ADD_ENTRY = 0
+# Get password
+    READ_ENTRY = 1
+# Modify password
+    MODIFY = 2
+# generate password
+    GENERATE = 3
+# Read all entries
+    READ_ALL = 4
+
+
+# Aliases for backwards compatibility
+# Add password
+ADD_ENTRY: AppNode = AppNode.ADD_ENTRY
+# Get password
+READ_ENTRY: AppNode = AppNode.READ_ENTRY
+# Modify password
+MODIFY: AppNode = AppNode.MODIFY
+# generate password
+GENERATE: AppNode = AppNode.GENERATE
+# Read all entries
+READ_ALL: AppNode = AppNode.READ_ALL
+
+
+_APPNODE_VALUE_TO_NAME_MAP: Dict[AppNode, str] = {
+    AppNode.ADD_ENTRY: "ADD_ENTRY",
+    AppNode.READ_ENTRY: "READ_ENTRY",
+    AppNode.MODIFY: "MODIFY",
+    AppNode.GENERATE: "GENERATE",
+    AppNode.READ_ALL: "READ_ALL",
+}
+
+def bp_processor_AppNode() -> bp.Processor:
+    return bp.EnumProcessor(bp.Uint(8))
+
+
+@dataclass
+class Login(bp.MessageBase):
+    # Number of bytes to serialize class Login
     BYTES_LENGTH: ClassVar[int] = 48
 
     username: List[int] = field(default_factory=lambda: [0 for _ in range(16)]) # 128bit
@@ -446,8 +652,362 @@ class CreateUser(bp.MessageBase):
 
 
 @dataclass
-class CreateUserRsp(bp.MessageBase):
-    # Number of bytes to serialize class CreateUserRsp
+class LoginRsp(bp.MessageBase):
+    # Number of bytes to serialize class LoginRsp
+    BYTES_LENGTH: ClassVar[int] = 1
+
+    success: bool = False # 1bit
+
+    def __post_init__(self):
+        pass
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp.Bool()),
+        ]
+        return bp.MessageProcessor(False, 1, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.success = bool(b)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (int(self.success) >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@dataclass
+class Generate(bp.MessageBase):
+    # Number of bytes to serialize class Generate
+    BYTES_LENGTH: ClassVar[int] = 1
+
+    generate: bool = False # 1bit
+
+    def __post_init__(self):
+        pass
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp.Bool()),
+        ]
+        return bp.MessageProcessor(False, 1, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.generate = bool(b)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (int(self.generate) >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@dataclass
+class GenerateRsp(bp.MessageBase):
+    # Number of bytes to serialize class GenerateRsp
+    BYTES_LENGTH: ClassVar[int] = 32
+
+    generated_password: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
+
+    def __post_init__(self):
+        pass
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp.Array(False, 32, bp.Uint(8))),
+        ]
+        return bp.MessageProcessor(False, 256, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.generated_password[di.i(0)] |= (int(b) << lshift)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (self.generated_password[di.i(0)] >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@dataclass
+class ReadEntry(bp.MessageBase):
+    # Number of bytes to serialize class ReadEntry
+    BYTES_LENGTH: ClassVar[int] = 1
+
+    index: int = 0 # 8bit
+
+    def __post_init__(self):
+        pass
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp.Uint(8)),
+        ]
+        return bp.MessageProcessor(False, 8, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.index |= (int(b) << lshift)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (self.index >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@dataclass
+class ReadEntryRsp(bp.MessageBase):
+    # Number of bytes to serialize class ReadEntryRsp
+    BYTES_LENGTH: ClassVar[int] = 65
+
+    info: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
+    wrapped_password: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
+    password_length: int = 0 # 8bit
+
+    def __post_init__(self):
+        pass
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp.Array(False, 32, bp.Uint(8))),
+            bp.MessageFieldProcessor(2, bp.Array(False, 32, bp.Uint(8))),
+            bp.MessageFieldProcessor(3, bp.Uint(8)),
+        ]
+        return bp.MessageProcessor(False, 520, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.info[di.i(0)] |= (int(b) << lshift)
+        if di.field_number == 2:
+            self.wrapped_password[di.i(0)] |= (int(b) << lshift)
+        if di.field_number == 3:
+            self.password_length |= (int(b) << lshift)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (self.info[di.i(0)] >> rshift) & 255
+        if di.field_number == 2:
+            return (self.wrapped_password[di.i(0)] >> rshift) & 255
+        if di.field_number == 3:
+            return (self.password_length >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@dataclass
+class AddEntry(bp.MessageBase):
+    # Number of bytes to serialize class AddEntry
+    BYTES_LENGTH: ClassVar[int] = 65
+
+    info: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
+    wrapped_password: List[int] = field(default_factory=lambda: [0 for _ in range(32)]) # 256bit
+    password_length: int = 0 # 8bit
+
+    def __post_init__(self):
+        pass
+
+    @staticmethod
+    def dict_factory(kv_pairs):
+        return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
+
+    def bp_processor(self) -> bp.Processor:
+        field_processors: List[bp.Processor] = [
+            bp.MessageFieldProcessor(1, bp.Array(False, 32, bp.Uint(8))),
+            bp.MessageFieldProcessor(2, bp.Array(False, 32, bp.Uint(8))),
+            bp.MessageFieldProcessor(3, bp.Uint(8)),
+        ]
+        return bp.MessageProcessor(False, 520, field_processors)
+
+    def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
+        if di.field_number == 1:
+            self.info[di.i(0)] |= (int(b) << lshift)
+        if di.field_number == 2:
+            self.wrapped_password[di.i(0)] |= (int(b) << lshift)
+        if di.field_number == 3:
+            self.password_length |= (int(b) << lshift)
+        return
+
+    def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
+        if di.field_number == 1:
+            return (self.info[di.i(0)] >> rshift) & 255
+        if di.field_number == 2:
+            return (self.wrapped_password[di.i(0)] >> rshift) & 255
+        if di.field_number == 3:
+            return (self.password_length >> rshift) & 255
+        return bp.byte(0)  # Won't reached
+
+    def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
+        return bp.NilAccessor() # Won't reached
+
+    def encode(self) -> bytearray:
+        """
+        Encode this object to bytearray.
+        """
+        s = bytearray(self.BYTES_LENGTH)
+        ctx = bp.ProcessContext(True, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+        return ctx.s
+
+    def decode(self, s: bytearray) -> None:
+        """
+        Decode given bytearray s to this object.
+        :param s: A bytearray with length at least `BYTES_LENGTH`.
+        """
+        assert len(s) >= self.BYTES_LENGTH, bp.NotEnoughBytes()
+        ctx = bp.ProcessContext(False, s)
+        self.bp_processor().process(ctx, bp.NIL_DATA_INDEXER, self)
+
+    def bp_process_int(self, di: bp.DataIndexer) -> None:
+        return
+
+
+@dataclass
+class AddEntryRsp(bp.MessageBase):
+    # Number of bytes to serialize class AddEntryRsp
     BYTES_LENGTH: ClassVar[int] = 1
 
     ack: bool = False # 1bit
@@ -501,65 +1061,57 @@ class CreateUserRsp(bp.MessageBase):
 
 
 @dataclass
-class Messages(bp.MessageBase):
-    # Number of bytes to serialize class Messages
-    BYTES_LENGTH: ClassVar[int] = 98
+class App(bp.MessageBase):
+    # Number of bytes to serialize class App
+    BYTES_LENGTH: ClassVar[int] = 67
 
-    id: Union[int, MessageId] = MessageId.INITIALIZE_COMM
-    # This field is a proxy to hold integer value of enum field 'id'
-    _enum_field_proxy__id: int = field(init=False, repr=False) # 8bit
-    init_comm: InitializeComm = field(default_factory=InitializeComm) # 256bit
-    challange: Challange = field(default_factory=Challange) # 128bit
-    handshake_finished: HandshakeFinished = field(default_factory=HandshakeFinished) # 1bit
-    user_creation: CreateUser = field(default_factory=CreateUser) # 384bit
+    node_id: Union[int, AppNode] = AppNode.ADD_ENTRY
+    # This field is a proxy to hold integer value of enum field 'node_id'
+    _enum_field_proxy__node_id: int = field(init=False, repr=False) # 8bit
+    new_entry: AddEntry = field(default_factory=AddEntry) # 520bit
+    generate: Generate = field(default_factory=Generate) # 1bit
 
     def __post_init__(self):
-        # initialize handling of enum field 'id' as `enum.IntEnum`
-        if not isinstance(getattr(Messages, "id", False), property):
-            self._enum_field_proxy__id = self.id
-            Messages.id = property(Messages._get_id, Messages._set_id)  # type: ignore
+        # initialize handling of enum field 'node_id' as `enum.IntEnum`
+        if not isinstance(getattr(App, "node_id", False), property):
+            self._enum_field_proxy__node_id = self.node_id
+            App.node_id = property(App._get_node_id, App._set_node_id)  # type: ignore
 
     @staticmethod
     def dict_factory(kv_pairs):
         return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
 
-    def _get_id(self) -> MessageId:
+    def _get_node_id(self) -> AppNode:
         """property getter for enum proxy field"""
-        return MessageId(self._enum_field_proxy__id)
+        return AppNode(self._enum_field_proxy__node_id)
 
-    def _set_id(self, val):
+    def _set_node_id(self, val):
         """property setter for enum proxy field"""
-        self._enum_field_proxy__id = val
+        self._enum_field_proxy__node_id = val
 
     def bp_processor(self) -> bp.Processor:
         field_processors: List[bp.Processor] = [
-            bp.MessageFieldProcessor(1, bp_processor_MessageId()),
-            bp.MessageFieldProcessor(2, InitializeComm().bp_processor()),
-            bp.MessageFieldProcessor(3, Challange().bp_processor()),
-            bp.MessageFieldProcessor(4, HandshakeFinished().bp_processor()),
-            bp.MessageFieldProcessor(5, CreateUser().bp_processor()),
+            bp.MessageFieldProcessor(1, bp_processor_AppNode()),
+            bp.MessageFieldProcessor(2, AddEntry().bp_processor()),
+            bp.MessageFieldProcessor(5, Generate().bp_processor()),
         ]
-        return bp.MessageProcessor(False, 777, field_processors)
+        return bp.MessageProcessor(False, 529, field_processors)
 
     def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
         if di.field_number == 1:
-            self.id |= (MessageId(b) << lshift)
+            self.node_id |= (AppNode(b) << lshift)
         return
 
     def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
         if di.field_number == 1:
-            return (self.id >> rshift) & 255
+            return (self.node_id >> rshift) & 255
         return bp.byte(0)  # Won't reached
 
     def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
         if di.field_number == 2:
-            return self.init_comm
-        if di.field_number == 3:
-            return self.challange
-        if di.field_number == 4:
-            return self.handshake_finished
+            return self.new_entry
         if di.field_number == 5:
-            return self.user_creation
+            return self.generate
         return bp.NilAccessor() # Won't reached
 
     def encode(self) -> bytearray:
@@ -585,65 +1137,57 @@ class Messages(bp.MessageBase):
 
 
 @dataclass
-class Responses(bp.MessageBase):
-    # Number of bytes to serialize class Responses
-    BYTES_LENGTH: ClassVar[int] = 66
+class AppRsp(bp.MessageBase):
+    # Number of bytes to serialize class AppRsp
+    BYTES_LENGTH: ClassVar[int] = 34
 
-    id: Union[int, MessageId] = MessageId.INITIALIZE_COMM
-    # This field is a proxy to hold integer value of enum field 'id'
-    _enum_field_proxy__id: int = field(init=False, repr=False) # 8bit
-    init_comm: InitializeCommRsp = field(default_factory=InitializeCommRsp) # 384bit
-    challange: ChallangeRsp = field(default_factory=ChallangeRsp) # 128bit
-    handshake_finished: HandshakeFinishedRsp = field(default_factory=HandshakeFinishedRsp) # 1bit
-    user_creation: CreateUserRsp = field(default_factory=CreateUserRsp) # 1bit
+    node_id: Union[int, AppNode] = AppNode.ADD_ENTRY
+    # This field is a proxy to hold integer value of enum field 'node_id'
+    _enum_field_proxy__node_id: int = field(init=False, repr=False) # 8bit
+    new_entry: AddEntryRsp = field(default_factory=AddEntryRsp) # 1bit
+    generate: GenerateRsp = field(default_factory=GenerateRsp) # 256bit
 
     def __post_init__(self):
-        # initialize handling of enum field 'id' as `enum.IntEnum`
-        if not isinstance(getattr(Responses, "id", False), property):
-            self._enum_field_proxy__id = self.id
-            Responses.id = property(Responses._get_id, Responses._set_id)  # type: ignore
+        # initialize handling of enum field 'node_id' as `enum.IntEnum`
+        if not isinstance(getattr(AppRsp, "node_id", False), property):
+            self._enum_field_proxy__node_id = self.node_id
+            AppRsp.node_id = property(AppRsp._get_node_id, AppRsp._set_node_id)  # type: ignore
 
     @staticmethod
     def dict_factory(kv_pairs):
         return {k: v for k, v in kv_pairs if not k.startswith('_enum_field_proxy__')}
 
-    def _get_id(self) -> MessageId:
+    def _get_node_id(self) -> AppNode:
         """property getter for enum proxy field"""
-        return MessageId(self._enum_field_proxy__id)
+        return AppNode(self._enum_field_proxy__node_id)
 
-    def _set_id(self, val):
+    def _set_node_id(self, val):
         """property setter for enum proxy field"""
-        self._enum_field_proxy__id = val
+        self._enum_field_proxy__node_id = val
 
     def bp_processor(self) -> bp.Processor:
         field_processors: List[bp.Processor] = [
-            bp.MessageFieldProcessor(1, bp_processor_MessageId()),
-            bp.MessageFieldProcessor(2, InitializeCommRsp().bp_processor()),
-            bp.MessageFieldProcessor(3, ChallangeRsp().bp_processor()),
-            bp.MessageFieldProcessor(4, HandshakeFinishedRsp().bp_processor()),
-            bp.MessageFieldProcessor(5, CreateUserRsp().bp_processor()),
+            bp.MessageFieldProcessor(1, bp_processor_AppNode()),
+            bp.MessageFieldProcessor(2, AddEntryRsp().bp_processor()),
+            bp.MessageFieldProcessor(5, GenerateRsp().bp_processor()),
         ]
-        return bp.MessageProcessor(False, 522, field_processors)
+        return bp.MessageProcessor(False, 265, field_processors)
 
     def bp_set_byte(self, di: bp.DataIndexer, lshift: int, b: bp.byte) -> None:
         if di.field_number == 1:
-            self.id |= (MessageId(b) << lshift)
+            self.node_id |= (AppNode(b) << lshift)
         return
 
     def bp_get_byte(self, di: bp.DataIndexer, rshift: int) -> bp.byte:
         if di.field_number == 1:
-            return (self.id >> rshift) & 255
+            return (self.node_id >> rshift) & 255
         return bp.byte(0)  # Won't reached
 
     def bp_get_accessor(self, di: bp.DataIndexer) -> bp.Accessor:
         if di.field_number == 2:
-            return self.init_comm
-        if di.field_number == 3:
-            return self.challange
-        if di.field_number == 4:
-            return self.handshake_finished
+            return self.new_entry
         if di.field_number == 5:
-            return self.user_creation
+            return self.generate
         return bp.NilAccessor() # Won't reached
 
     def encode(self) -> bytearray:

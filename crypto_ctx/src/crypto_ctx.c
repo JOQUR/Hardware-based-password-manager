@@ -23,7 +23,7 @@ static struct AES_ctx aes_ctx;
 
 
 static bool cryptoctx_generate_seed(void);
-static bool cryptoctx_generate_iv(void);
+
 
 bool cryptoctx_init(void)
 {
@@ -180,16 +180,17 @@ static bool cryptoctx_generate_seed(void)
     return status;
 }
 
-static bool cryptoctx_generate_iv(void)
+bool cryptoctx_generate_iv(void)
 {
     bool status = true;
 
     uint8_t* iv = NULL;
-    iv = malloc(AES_BLOCKLEN);
+    iv = malloc(12);
 
     if(NULL != iv)
     {
-        cryptoctx_generate_rand_buffer(iv, AES_BLOCKLEN);
+        free(CryptoContext.iv);
+        cryptoctx_generate_rand_buffer(iv, 12);
         CryptoContext.iv = iv;
     }
     else
@@ -205,3 +206,7 @@ uint8_t* cryptoctx_get_iv(void)
     return CryptoContext.iv;
 }
 
+uint8_t* cryptoctx_get_shared_secret(void)
+{
+    return CryptoContext.shared_secret;
+}

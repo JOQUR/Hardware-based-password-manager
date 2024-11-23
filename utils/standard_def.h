@@ -14,3 +14,7 @@ typedef struct array
 #define ARRAY_SIZE(__ARR__)                         (sizeof((__ARR__)) / sizeof((__ARR__)[0]))
 
 #define CHECK_STATUS(_STATUS_, _OP_)                if (_STATUS_ == true) { _STATUS_ &= _OP_; }
+
+
+
+typedef bool (*message_processor)(array_t* , array_t*, bool*);
