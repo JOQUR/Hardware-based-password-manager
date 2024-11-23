@@ -46,7 +46,7 @@ class ConnectionHandler:
             self.__start_app()
 
 if __name__ == "__main__":
-    client = Client("admin", "admin123")
+    client = Client("admin", "admsin123")
     connection_handler = ConnectionHandler(client, 8070)
     connection_handler.start()
     print("Connection established successfully.")

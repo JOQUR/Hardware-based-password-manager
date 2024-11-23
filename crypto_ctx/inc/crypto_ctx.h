@@ -13,3 +13,5 @@ bool cryptoctx_encrypt(uint8_t* data, uint16_t len);
 void cryptoctx_prepare_aes(void);
 
 uint8_t* cryptoctx_get_iv(void);
+uint8_t* cryptoctx_get_shared_secret(void);
+bool cryptoctx_generate_iv(void);

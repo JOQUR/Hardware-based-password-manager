@@ -16,7 +16,6 @@ message InitializeComm{
 }
 message InitializeCommRsp{
     uint8[32] public_key = 1
-    uint8[16] initialization_vector = 2
 }
 
 message Challange{
@@ -24,6 +23,8 @@ message Challange{
 }
 message ChallangeRsp{
     uint8[32] challange_buffer = 1
+    uint8[12] initialization_vector = 2
+    uint8[16] tag = 3
 }
 
 message HandshakeFinished{

@@ -3,6 +3,7 @@ from AesCBCCrypto import AesCBCCrypto
 import ICrypto
 from messaging_bp import *
 from State import State
+import gcm
 
 class ChallangeFailedException(Exception):
     def __init__(self, message):
@@ -65,6 +66,28 @@ class Handshake(IStage):
         message = Messages(id=CHALLANGE, challange=challenge)
         return message.encode()
     
+    def processChallangeResponse(self, bytes_rcv: bytearray):
+        """
+        Processes the received challenge response and verifies the response.
+
+        Args:
+            bytes_rcv (bytearray): The received challenge response message.
+
+        Raises:
+            ChallangeFailedException: If the challenge response does not match the expected challenge message.
+
+        The function decodes the received message and decrypts the challenge buffer. It then
+        compares the decrypted message with the expected challenge message. If the messages
+        do not match, a ChallangeFailedException is raised.
+        """
+        assert bytes_rcv is not None
+        message_rsp = Responses()
+        message_rsp.decode(bytes_rcv)
+        challenge_rsp = message_rsp.challange
+        response = self.crypto.decrypt(challenge_rsp.challange_buffer)
+        if response != self.challange_message:
+            raise ChallangeFailedException("Challange failed!")
+    
     def prepareHandshakeFinish(self):
         """
         Prepares and encodes a handshake finish message.
@@ -112,10 +135,10 @@ class Handshake(IStage):
         if message_rsp.id == INITIALIZE_COMM:
             init_comm_rsp = message_rsp.init_comm
             self.crypto.setSharedKey(bytes(init_comm_rsp.public_key))
-            self.crypto.iv = bytes(init_comm_rsp.initialization_vector)
         elif message_rsp.id == CHALLANGE:
             challenge_rsp = message_rsp.challange
-            response = self.crypto.decrypt(challenge_rsp.challange_buffer)
+            self.crypto.iv = bytes(challenge_rsp.initialization_vector)
+            response = self.crypto.decrypt(bytes(challenge_rsp.challange_buffer), bytes(challenge_rsp.tag))
             if response == self.challange_message:
                 self.__state = State.CHALLANGE
             else:

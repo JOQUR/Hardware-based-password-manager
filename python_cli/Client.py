@@ -4,13 +4,13 @@ from User import User
 from messaging_bp import *
 from AesCBCCrypto import AesCBCCrypto
 from State import *
-
+from gcm import *
 
 class Client:
     def __init__(self, login, password):
         self.__user = User(login, password)
         self.__state = State.HELLO
-        self.__crypto = AesCBCCrypto()
+        self.__crypto = GCM()
         self.__stage = Handshake(self.__crypto)
 
     @property
@@ -44,7 +44,7 @@ class Client:
         return self.__crypto
 
 if __name__ == "__main__":
-    client = Client("admin", "admin")
+    client = Client("admin", "adxmin")
     print("Client created successfully.")
     print("User logged in successfully.")
     print("Handshake stage created successfully.")

@@ -18,6 +18,7 @@
         "debug.h": "c",
         "standard_def.h": "c",
         "stdbool.h": "c",
-        "app.h": "c"
+        "app.h": "c",
+        "crypto_ctx.h": "c"
     }
 }

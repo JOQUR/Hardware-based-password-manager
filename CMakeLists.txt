@@ -19,6 +19,10 @@ set(SRC_FILES
         ${PROJECT_SOURCE_DIR}/crypto_ctx/src/crypto_ctx.c
         ${PROJECT_SOURCE_DIR}/user_context/src/user_context.c
         ${PROJECT_SOURCE_DIR}/app/src/app.c
+        ${PROJECT_SOURCE_DIR}/gcm/src/aes.c
+        ${PROJECT_SOURCE_DIR}/gcm/src/gcm.c
+        ${PROJECT_SOURCE_DIR}/gcm/src/aes-gcm.c
+        ${PROJECT_SOURCE_DIR}/gcm_api/src/gcm_api.c
 )
 
 add_executable(${EXECUTABLE} server_example.c ${SRC_FILES})
@@ -38,6 +42,8 @@ target_include_directories(${EXECUTABLE}
         PUBLIC ${PROJECT_SOURCE_DIR}/crypto_ctx/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/user_context/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/app/inc/
+        PUBLIC ${PROJECT_SOURCE_DIR}/gcm/inc/
+        PUBLIC ${PROJECT_SOURCE_DIR}/gcm_api/inc/
 )
 
 target_link_directories(${EXECUTABLE} PUBLIC
@@ -54,4 +60,8 @@ target_link_directories(${EXECUTABLE} PUBLIC
         ${PROJECT_SOURCE_DIR}/crypto_ctx/src/crypto_ctx.c
         ${PROJECT_SOURCE_DIR}/user_context/src/user_context.c
         ${PROJECT_SOURCE_DIR}/app/src/app.c
+        ${PROJECT_SOURCE_DIR}/gcm/src/aes.c
+        ${PROJECT_SOURCE_DIR}/gcm/src/gcm.c
+        ${PROJECT_SOURCE_DIR}/gcm/src/aes-gcm.c
+        ${PROJECT_SOURCE_DIR}/gcm_api/src/gcm_api.c
 )

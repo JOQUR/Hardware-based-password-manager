@@ -35,7 +35,7 @@ bool app_process_message(array_t* message, array_t* response, bool* send_reponse
 
             case GENERATE:
             {
-                status &= app_generate_password(app_message.generate, &(app_reponse.generate));
+                status &= app_generate_password(&app_message.generate, &(app_reponse.generate));
                 app_reponse.node_id = GENERATE;
                 *send_reponse = true;
             }
@@ -67,7 +67,7 @@ static bool app_process_new_entry(struct AddEntry* new_entry, struct AddEntryRsp
     new_entry_rsp->ack = status;
 
     return status;
-}
+} 
 
 static bool app_generate_password(bool generate, struct GenerateRsp* generate_rsp)
 {

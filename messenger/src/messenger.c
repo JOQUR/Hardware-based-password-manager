@@ -5,6 +5,7 @@
 #include "crypto_ctx.h"
 #include "user_context.h"
 #include "app.h"
+#include "gcm_api.h"
 
 /**
  * @brief Initializes a ChannelContext_t structure with zero values.
@@ -190,10 +191,10 @@ static bool messenger_process_initialize_comm(struct InitializeComm* init_comm, 
     CHECK_STATUS(status, cryptoctx_generate_key_pair());
     CHECK_STATUS(status, cryptoctx_get_server_public_key(init_comm_rsp->public_key));
     CHECK_STATUS(status, cryptoctx_generate_shared_secret());
-    memcpy(init_comm_rsp->initialization_vector, cryptoctx_get_iv(), sizeof(init_comm_rsp->initialization_vector));
     if(true == status)
     {
         cryptoctx_prepare_aes();
+        gcm_init(cryptoctx_get_shared_secret(), 32);
     }
 
     if (status)
@@ -220,15 +221,10 @@ static bool messenger_process_initialize_comm(struct InitializeComm* init_comm, 
  */
 static bool messenger_process_challenge(struct Challange* challange, struct ChallangeRsp* challange_rsp)
 {
-    bool status = true;
-
-    // TODO: Make proper implementation, now its just echo
-    memcpy(challange_rsp->challange_buffer, challange->challange_buffer, ARRAY_SIZE(challange->challange_buffer));
-    assert(ARRAY_CMP(challange->challange_buffer, challange_rsp->challange_buffer, ARRAY_SIZE(challange->challange_buffer)));
+    bool status = true; 
+    cryptoctx_generate_iv();
+    memcpy(challange_rsp->initialization_vector, cryptoctx_get_iv(), 12);
+    CHECK_STATUS(status, gcm_encrypt(challange_rsp->initialization_vector, NULL, 0, challange->challange_buffer, challange_rsp->challange_buffer, 32, challange_rsp->tag, 16));
     channel_ctx.status = ESTABLISHED;
-    PRINT_BUFFER(challange_rsp->challange_buffer, 16, "BEFORE ENCRYPTION");
-    cryptoctx_encrypt(challange_rsp->challange_buffer, ARRAY_SIZE(challange->challange_buffer));
-    PRINT_BUFFER(challange_rsp->challange_buffer, 16, "CHALLANGE");
-    PRINT(channel_ctx.status);
     return status;
 }

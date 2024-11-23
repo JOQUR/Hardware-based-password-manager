@@ -35,11 +35,10 @@ struct InitializeComm {
 };
 
 // Number of bytes to encode struct InitializeCommRsp
-#define BYTES_LENGTH_INITIALIZE_COMM_RSP 48
+#define BYTES_LENGTH_INITIALIZE_COMM_RSP 32
 
 struct InitializeCommRsp {
     uint8_t public_key[32]; // 256bit
-    uint8_t initialization_vector[16]; // 128bit
 };
 
 // Number of bytes to encode struct Challange
@@ -50,10 +49,12 @@ struct Challange {
 };
 
 // Number of bytes to encode struct ChallangeRsp
-#define BYTES_LENGTH_CHALLANGE_RSP 32
+#define BYTES_LENGTH_CHALLANGE_RSP 60
 
 struct ChallangeRsp {
     uint8_t challange_buffer[32]; // 256bit
+    uint8_t initialization_vector[12]; // 96bit
+    uint8_t tag[16]; // 128bit
 };
 
 // Number of bytes to encode struct HandshakeFinished
@@ -82,12 +83,12 @@ struct Messages {
 };
 
 // Number of bytes to encode struct Responses
-#define BYTES_LENGTH_RESPONSES 82
+#define BYTES_LENGTH_RESPONSES 94
 
 struct Responses {
     MessageId id; // 8bit
-    struct InitializeCommRsp init_comm; // 384bit
-    struct ChallangeRsp challange; // 256bit
+    struct InitializeCommRsp init_comm; // 256bit
+    struct ChallangeRsp challange; // 480bit
     struct HandshakeFinishedRsp handshake_finished; // 1bit
 };
 
@@ -119,11 +120,34 @@ struct LoginRsp {
     bool success; // 1bit
 };
 
+// Number of bytes to encode struct Generate
+#define BYTES_LENGTH_GENERATE 1
+
+struct Generate {
+    bool generate; // 1bit
+};
+
 // Number of bytes to encode struct GenerateRsp
 #define BYTES_LENGTH_GENERATE_RSP 32
 
 struct GenerateRsp {
     uint8_t generated_password[32]; // 256bit
+};
+
+// Number of bytes to encode struct ReadEntry
+#define BYTES_LENGTH_READ_ENTRY 1
+
+struct ReadEntry {
+    uint8_t index; // 8bit
+};
+
+// Number of bytes to encode struct ReadEntryRsp
+#define BYTES_LENGTH_READ_ENTRY_RSP 65
+
+struct ReadEntryRsp {
+    uint8_t info[32]; // 256bit
+    uint8_t wrapped_password[32]; // 256bit
+    uint8_t password_length; // 8bit
 };
 
 // Number of bytes to encode struct AddEntry
@@ -148,7 +172,7 @@ struct AddEntryRsp {
 struct App {
     AppNode node_id; // 8bit
     struct AddEntry new_entry; // 520bit
-    bool generate; // 1bit
+    struct Generate generate; // 1bit
 };
 
 // Number of bytes to encode struct AppRsp
@@ -230,12 +254,33 @@ int DecodeLoginRsp(struct LoginRsp *m, unsigned char *s);
 // Format struct LoginRsp to a json format string.
 int JsonLoginRsp(struct LoginRsp *m, char *s);
 
+// Encode struct Generate to given buffer s.
+int EncodeGenerate(struct Generate *m, unsigned char *s);
+// Decode struct Generate from given buffer s.
+int DecodeGenerate(struct Generate *m, unsigned char *s);
+// Format struct Generate to a json format string.
+int JsonGenerate(struct Generate *m, char *s);
+
 // Encode struct GenerateRsp to given buffer s.
 int EncodeGenerateRsp(struct GenerateRsp *m, unsigned char *s);
 // Decode struct GenerateRsp from given buffer s.
 int DecodeGenerateRsp(struct GenerateRsp *m, unsigned char *s);
 // Format struct GenerateRsp to a json format string.
 int JsonGenerateRsp(struct GenerateRsp *m, char *s);
+
+// Encode struct ReadEntry to given buffer s.
+int EncodeReadEntry(struct ReadEntry *m, unsigned char *s);
+// Decode struct ReadEntry from given buffer s.
+int DecodeReadEntry(struct ReadEntry *m, unsigned char *s);
+// Format struct ReadEntry to a json format string.
+int JsonReadEntry(struct ReadEntry *m, char *s);
+
+// Encode struct ReadEntryRsp to given buffer s.
+int EncodeReadEntryRsp(struct ReadEntryRsp *m, unsigned char *s);
+// Decode struct ReadEntryRsp from given buffer s.
+int DecodeReadEntryRsp(struct ReadEntryRsp *m, unsigned char *s);
+// Format struct ReadEntryRsp to a json format string.
+int JsonReadEntryRsp(struct ReadEntryRsp *m, char *s);
 
 // Encode struct AddEntry to given buffer s.
 int EncodeAddEntry(struct AddEntry *m, unsigned char *s);
@@ -295,8 +340,17 @@ void BpXXXJsonFormatLogin(void *data, struct BpJsonFormatContext *ctx);
 void BpXXXProcessLoginRsp(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatLoginRsp(void *data, struct BpJsonFormatContext *ctx);
 
+void BpXXXProcessGenerate(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatGenerate(void *data, struct BpJsonFormatContext *ctx);
+
 void BpXXXProcessGenerateRsp(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatGenerateRsp(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessReadEntry(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatReadEntry(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessReadEntryRsp(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatReadEntryRsp(void *data, struct BpJsonFormatContext *ctx);
 
 void BpXXXProcessAddEntry(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatAddEntry(void *data, struct BpJsonFormatContext *ctx);
