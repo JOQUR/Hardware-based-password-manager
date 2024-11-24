@@ -5,6 +5,7 @@
 #include "stdlib.h"
 #include "AES.h"
 #include "debug.h"
+#include <time.h>
 
 typedef struct CryptoCtx
 {
@@ -19,7 +20,7 @@ typedef struct CryptoCtx
 } CryptoCtx_t;
 
 static CryptoCtx_t CryptoContext;
-static struct AES_ctx aes_ctx;
+// static struct AES_ctx aes_ctx;
 
 
 static bool cryptoctx_generate_seed(void);
@@ -36,7 +37,8 @@ bool cryptoctx_init(void)
     CryptoContext.isInitialized = true;
     CHECK_STATUS(status, cryptoctx_generate_seed());
     CHECK_STATUS(status, cryptoctx_generate_key_pair());
-    CHECK_STATUS(status, cryptoctx_generate_iv());
+    CHECK_STATUS(status, cryptoctx_generate_iv());   
+    srand(time(0));
     return status;
 }
 
@@ -151,19 +153,19 @@ bool cryptoctx_generate_shared_secret(void)
     return status;
 }
 
-void cryptoctx_prepare_aes(void)
-{
-    AES_init_ctx_iv(&aes_ctx, CryptoContext.shared_secret, CryptoContext.iv);
-}
+// void cryptoctx_prepare_aes(void)
+// {
+//     AES_init_ctx_iv(&aes_ctx, CryptoContext.shared_secret, CryptoContext.iv);
+// }
 
-bool cryptoctx_encrypt(uint8_t* data, uint16_t len)
-{
-    PRINT_BUFFER(data, len, "DATA: ");
-    AES_CBC_encrypt_buffer(&aes_ctx, data, len);
-    PRINT_BUFFER(data, len, "ENCRYPTED: ");
-    PRINT_BUFFER(CryptoContext.shared_secret, 32, "SHARED SECRET: ");
-    PRINT_BUFFER(CryptoContext.iv, 16, "IV: ");
-}
+// bool cryptoctx_encrypt(uint8_t* data, uint16_t len)
+// {
+//     PRINT_BUFFER(data, len, "DATA: ");
+//     AES_CBC_encrypt_buffer(&aes_ctx, data, len);
+//     PRINT_BUFFER(data, len, "ENCRYPTED: ");
+//     PRINT_BUFFER(CryptoContext.shared_secret, 32, "SHARED SECRET: ");
+//     PRINT_BUFFER(CryptoContext.iv, 16, "IV: ");
+// }
 static bool cryptoctx_generate_seed(void)
 {
     bool status = true;

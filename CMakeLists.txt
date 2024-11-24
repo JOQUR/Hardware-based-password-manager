@@ -23,6 +23,7 @@ set(SRC_FILES
         ${PROJECT_SOURCE_DIR}/gcm/src/gcm.c
         ${PROJECT_SOURCE_DIR}/gcm/src/aes-gcm.c
         ${PROJECT_SOURCE_DIR}/gcm_api/src/gcm_api.c
+        ${PROJECT_SOURCE_DIR}/key_wrapping/src/kwp.c
 )
 
 add_executable(${EXECUTABLE} server_example.c ${SRC_FILES})
@@ -44,6 +45,7 @@ target_include_directories(${EXECUTABLE}
         PUBLIC ${PROJECT_SOURCE_DIR}/app/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/gcm/inc/
         PUBLIC ${PROJECT_SOURCE_DIR}/gcm_api/inc/
+        PUBLIC ${PROJECT_SOURCE_DIR}/key_wrapping/inc/
 )
 
 target_link_directories(${EXECUTABLE} PUBLIC
@@ -64,4 +66,5 @@ target_link_directories(${EXECUTABLE} PUBLIC
         ${PROJECT_SOURCE_DIR}/gcm/src/gcm.c
         ${PROJECT_SOURCE_DIR}/gcm/src/aes-gcm.c
         ${PROJECT_SOURCE_DIR}/gcm_api/src/gcm_api.c
+        ${PROJECT_SOURCE_DIR}/key_wrapping/src/kwp.c
 )

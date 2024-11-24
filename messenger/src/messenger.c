@@ -193,7 +193,7 @@ static bool messenger_process_initialize_comm(struct InitializeComm* init_comm, 
     CHECK_STATUS(status, cryptoctx_generate_shared_secret());
     if(true == status)
     {
-        cryptoctx_prepare_aes();
+        // cryptoctx_prepare_aes();
         gcm_init(cryptoctx_get_shared_secret(), 32);
     }
 

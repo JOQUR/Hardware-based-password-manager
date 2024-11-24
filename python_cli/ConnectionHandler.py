@@ -3,7 +3,7 @@ import os
 from Client import Client
 from State import State
 from Application import Application
-
+import messaging_bp
 class ConnectionHandler:
     def __init__(self, client: Client, port):
         self.__client = client
@@ -44,6 +44,10 @@ class ConnectionHandler:
             server_socket.sendall(self.__client.stage.prepareStartApp())
             assert self.__client.stage.state == State.APP_START, "Application did not start successfully."
             self.__start_app()
+
+            server_socket.sendall(self.__client.stage.prepareGenerate())
+            rcv = server_socket.recv(1024)
+            self.__client.stage.processGenerate(rcv)
 
 if __name__ == "__main__":
     client = Client("admin", "admsin123")

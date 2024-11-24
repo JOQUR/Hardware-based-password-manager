@@ -63,21 +63,14 @@ enum AppNode: uint8 {
     READ_ALL = 4
 }
 
-message Login{
-    uint8[16] username = 1
-    uint8[32] password_hash = 2
-}
-
-message LoginRsp {
-    bool success = 1
-}
-
 message Generate {
     bool generate = 1
 }
 
 message GenerateRsp {
     uint8[32] generated_password = 1
+    uint8[12] initialization_vector = 2
+    uint8[16] tag = 3
 }
 
 message ReadEntry {
@@ -103,14 +96,12 @@ message AddEntryRsp {
 message App {
     AppNode node_id = 1
     AddEntry new_entry = 2
-    Generate generate = 5
+    Generate generate = 3
 }
-
-
 
 message AppRsp {
     AppNode node_id = 1
     AddEntryRsp new_entry = 2
-    GenerateRsp generate = 5
+    GenerateRsp generate = 3
 
 }

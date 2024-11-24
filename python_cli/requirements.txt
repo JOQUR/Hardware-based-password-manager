@@ -3,3 +3,4 @@ bitprotolib
 x25519
 pycryptodome
 pycryptodomex
+aes-keywrap

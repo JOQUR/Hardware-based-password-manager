@@ -83,7 +83,8 @@ class Handshake(IStage):
         message_rsp = Responses()
         message_rsp.decode(bytes_rcv)
         challenge_rsp = message_rsp.challange
-        response = self.crypto.decrypt(challenge_rsp.challange_buffer)
+        print("IV: ", challenge_rsp.initialization_vector)
+        response = self.crypto.decrypt(challenge_rsp.challange_buffer, challenge_rsp.initialization_vector)
         if response != self.challange_message:
             raise ChallangeFailedException("Challange failed!")
     
@@ -136,8 +137,7 @@ class Handshake(IStage):
             self.crypto.setSharedKey(bytes(init_comm_rsp.public_key))
         elif message_rsp.id == CHALLANGE:
             challenge_rsp = message_rsp.challange
-            self.crypto.iv = bytes(challenge_rsp.initialization_vector)
-            response = self.crypto.decrypt(bytes(challenge_rsp.challange_buffer), bytes(challenge_rsp.tag))
+            response = self.crypto.decrypt(bytes(challenge_rsp.challange_buffer), bytes(challenge_rsp.initialization_vector), bytes(challenge_rsp.tag))
             if response == self.challange_message:
                 self.__state = State.CHALLANGE
             else:
