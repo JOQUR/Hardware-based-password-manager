@@ -50,17 +50,17 @@ class ICrypto(ABC):
 
     def setSharedKey(self, key):
         self.shared_key = x25519.scalar_mult(self.__private_key, key)
-        print("Shared key: ", self.shared_key)
 
     @abstractmethod
-    def encrypt(self, data, tag=None, aad=None):
+    def encrypt(self, data, iv=None, tag=None, aad=None):
         """
-        Encrypts the given data.
+        Encrypts the given data using the specified parameters.
 
         Args:
             data (bytes): The data to be encrypted.
-            tag (bytes, optional): The tag to be used for encryption. Defaults to None.
-            aad (bytes, optional): Additional authenticated data. Defaults to None.
+            iv (bytes, optional): The initialization vector to use for encryption. Defaults to None.
+            tag (bytes, optional): The authentication tag to use for encryption. Defaults to None.
+            aad (bytes, optional): Additional authenticated data to use for encryption. Defaults to None.
 
         Returns:
             bytes: The encrypted data.
@@ -68,19 +68,17 @@ class ICrypto(ABC):
         pass
 
     @abstractmethod
-    def decrypt(self, data, tag=None, aad=None):
+    def decrypt(self, data, iv=None, tag=None, aad=None):
         """
-        Decrypts the provided data.
+        Decrypts the provided data using the specified parameters.
 
         Args:
             data (bytes): The encrypted data to be decrypted.
-            tag (bytes, optional): The authentication tag used for verifying the integrity of the data. Default is None.
-            aad (bytes, optional): Additional authenticated data that was used during encryption. Default is None.
+            iv (bytes, optional): The initialization vector used during encryption. Defaults to None.
+            tag (bytes, optional): The authentication tag used during encryption. Defaults to None.
+            aad (bytes, optional): Additional authenticated data used during encryption. Defaults to None.
 
         Returns:
             bytes: The decrypted data.
-
-        Raises:
-            ValueError: If the decryption fails due to invalid data or tag.
         """
         pass

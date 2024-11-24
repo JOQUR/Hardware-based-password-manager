@@ -14,6 +14,7 @@ class User:
         if self.__salt == "" and isCreated == False:
             self.__salt = ICrypto.getRandomByteArray(16)
         password, self.__salt = ICrypto.PBKDF2(password.encode() + username.encode(), self.__salt)
+        self.__kek = None
         if isCreated == False:
             self.__createUser(username, password, self.__salt)
         else:
@@ -49,6 +50,7 @@ class User:
         json_file["users"][0]["login"] = username
         json_file["users"][0]["password_hash"] = password
         json_file["users"][0]["salt"] = salt
+        json_file["users"][0]["kek"] = ICrypto.getRandomByteArray(16)
         with open("userdata.json", "w") as file:
             json.dump(json_file, file)
         
@@ -57,6 +59,12 @@ class User:
     def __read_json(self, file_name):
         with open(file_name, "r") as file:
             return json.load(file)
+        
+    @property
+    def kek(self):
+        self.__kek = self.__read_json("userdata.json")["users"][0]["kek"]
+        assert self.__kek is not None, "kek is not initialized."
+        return self.__kek
         
 if __name__ == "__main__":
     user = User("admin", "admin")

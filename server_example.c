@@ -10,6 +10,7 @@
 #include "messenger.h"
 #include "crypto_ctx.h"
 #include "gcm.h"
+#include "kwp.h"
 
 #define PORT 8070
 #define SA struct sockaddr 
@@ -18,6 +19,8 @@ void message_echange(int connfd);
 static void prepare_and_read(int connfd, array_t* message, array_t* response);
 static void test_gcm_encryption(void);
 static void test_gcm_decryption(void);
+static void test_kwp_wrapping(void);
+static void test_kwp_unwrapping(void);
 
 message_processor processor_cbk = messenger_process_message;
 
@@ -37,6 +40,8 @@ int main(void)
     struct sockaddr_in cli = {0};
     test_gcm_encryption();
     test_gcm_decryption();
+    test_kwp_wrapping();
+    test_kwp_unwrapping();
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     assert(sockfd != -1);
 
@@ -100,8 +105,8 @@ void message_echange(int connfd)
 
 static void prepare_and_read(int connfd, array_t* message, array_t* response)
 {
-    memset(message->buffer, 0xff, 256);
-    memset(response->buffer, 0xff, 256);
+    memset(message->buffer, 0x00, 256);
+    memset(response->buffer, 0x00, 256);
     size_t valread = read(connfd, message->buffer, 256);
     message->size = valread;
     response->size = 256;
@@ -214,5 +219,103 @@ static void test_gcm_decryption(void)
     else
     {
         printf("GCM decryption test passed\n");
+    }
+}
+
+
+static void test_kwp_wrapping(void)
+{
+    uint8_t kek[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
+    };
+    uint8_t unwrapped_key[] = {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF
+    };
+    uint8_t wrapped_key[] = {
+        0x1F, 0xA6, 0x8B, 0x0A, 0x81, 0x12, 0xB4, 0x47,
+        0xAE, 0xF3, 0x4B, 0xD8, 0xFB, 0x5A, 0x7B, 0x82,
+        0x9D, 0x3E, 0x86, 0x23, 0x71, 0xD2, 0xCF, 0xE5
+    };
+    array_t kek_arr = {0};
+    array_t unwrapped_key_arr = {0};
+    array_t wrapped_key_arr = {0};
+    array_t out = {0};
+
+    uint8_t out_buff[sizeof(wrapped_key)] = {0};
+    out.buffer = out_buff;
+    out.size = sizeof(out_buff);
+    kek_arr.buffer = kek;
+    kek_arr.size = sizeof(kek);
+    unwrapped_key_arr.buffer = unwrapped_key;
+    unwrapped_key_arr.size = sizeof(unwrapped_key);
+    wrapped_key_arr.buffer = wrapped_key;
+    wrapped_key_arr.size = sizeof(wrapped_key);
+
+    KW_Status_t status = kw_wrap_key(&kek_arr, &unwrapped_key_arr, &out);
+    if (status == OK)
+    {
+        if(0 ==memcmp(out.buffer, wrapped_key, sizeof(wrapped_key)))
+        {
+            printf("Key wrapping test passed\n");
+        }
+        else
+        {
+            printf("Key wrapping test failed\n");
+        }
+    }
+    else
+    {
+        printf("Key wrapping test failed\n");
+    }
+    
+}
+
+static void test_kwp_unwrapping(void)
+{
+    uint8_t kek[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
+    };
+    uint8_t wrapped_key[] = {
+        0x1F, 0xA6, 0x8B, 0x0A, 0x81, 0x12, 0xB4, 0x47,
+        0xAE, 0xF3, 0x4B, 0xD8, 0xFB, 0x5A, 0x7B, 0x82,
+        0x9D, 0x3E, 0x86, 0x23, 0x71, 0xD2, 0xCF, 0xE5
+    };
+    uint8_t expected_unwrapped_key[] = {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF
+    };
+    array_t kek_arr = {0};
+    array_t wrapped_key_arr = {0};
+    array_t unwrapped_key_arr = {0};
+    array_t out = {0};
+
+    uint8_t out_buff[sizeof(expected_unwrapped_key)] = {0};
+    out.buffer = out_buff;
+    out.size = sizeof(out_buff);
+    kek_arr.buffer = kek;
+    kek_arr.size = sizeof(kek);
+    wrapped_key_arr.buffer = wrapped_key;
+    wrapped_key_arr.size = sizeof(wrapped_key);
+    unwrapped_key_arr.buffer = expected_unwrapped_key;
+    unwrapped_key_arr.size = sizeof(expected_unwrapped_key);
+
+    KW_Status_t status = kw_unwrap_key(&kek_arr, &wrapped_key_arr, &out);
+    if (status == OK)
+    {
+        if(0 == memcmp(out.buffer, expected_unwrapped_key, sizeof(expected_unwrapped_key)))
+        {
+            printf("Key unwrapping test passed\n");
+        }
+        else
+        {
+            printf("Key unwrapping test failed\n");
+        }
+    }
+    else
+    {
+        printf("Key unwrapping test failed\n");
     }
 }

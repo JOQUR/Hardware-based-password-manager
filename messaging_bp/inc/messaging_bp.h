@@ -105,21 +105,6 @@ typedef uint8_t AppNode; // 8bit
 // Read all entries
 #define READ_ALL 4
 
-// Number of bytes to encode struct Login
-#define BYTES_LENGTH_LOGIN 48
-
-struct Login {
-    uint8_t username[16]; // 128bit
-    uint8_t password_hash[32]; // 256bit
-};
-
-// Number of bytes to encode struct LoginRsp
-#define BYTES_LENGTH_LOGIN_RSP 1
-
-struct LoginRsp {
-    bool success; // 1bit
-};
-
 // Number of bytes to encode struct Generate
 #define BYTES_LENGTH_GENERATE 1
 
@@ -128,10 +113,12 @@ struct Generate {
 };
 
 // Number of bytes to encode struct GenerateRsp
-#define BYTES_LENGTH_GENERATE_RSP 32
+#define BYTES_LENGTH_GENERATE_RSP 60
 
 struct GenerateRsp {
     uint8_t generated_password[32]; // 256bit
+    uint8_t initialization_vector[12]; // 96bit
+    uint8_t tag[16]; // 128bit
 };
 
 // Number of bytes to encode struct ReadEntry
@@ -176,12 +163,12 @@ struct App {
 };
 
 // Number of bytes to encode struct AppRsp
-#define BYTES_LENGTH_APP_RSP 34
+#define BYTES_LENGTH_APP_RSP 62
 
 struct AppRsp {
     AppNode node_id; // 8bit
     struct AddEntryRsp new_entry; // 1bit
-    struct GenerateRsp generate; // 256bit
+    struct GenerateRsp generate; // 480bit
 };
 
 // Encode struct InitializeComm to given buffer s.
@@ -239,20 +226,6 @@ int EncodeResponses(struct Responses *m, unsigned char *s);
 int DecodeResponses(struct Responses *m, unsigned char *s);
 // Format struct Responses to a json format string.
 int JsonResponses(struct Responses *m, char *s);
-
-// Encode struct Login to given buffer s.
-int EncodeLogin(struct Login *m, unsigned char *s);
-// Decode struct Login from given buffer s.
-int DecodeLogin(struct Login *m, unsigned char *s);
-// Format struct Login to a json format string.
-int JsonLogin(struct Login *m, char *s);
-
-// Encode struct LoginRsp to given buffer s.
-int EncodeLoginRsp(struct LoginRsp *m, unsigned char *s);
-// Decode struct LoginRsp from given buffer s.
-int DecodeLoginRsp(struct LoginRsp *m, unsigned char *s);
-// Format struct LoginRsp to a json format string.
-int JsonLoginRsp(struct LoginRsp *m, char *s);
 
 // Encode struct Generate to given buffer s.
 int EncodeGenerate(struct Generate *m, unsigned char *s);
@@ -333,12 +306,6 @@ void BpXXXJsonFormatMessages(void *data, struct BpJsonFormatContext *ctx);
 
 void BpXXXProcessResponses(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatResponses(void *data, struct BpJsonFormatContext *ctx);
-
-void BpXXXProcessLogin(void *data, struct BpProcessorContext *ctx);
-void BpXXXJsonFormatLogin(void *data, struct BpJsonFormatContext *ctx);
-
-void BpXXXProcessLoginRsp(void *data, struct BpProcessorContext *ctx);
-void BpXXXJsonFormatLoginRsp(void *data, struct BpJsonFormatContext *ctx);
 
 void BpXXXProcessGenerate(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatGenerate(void *data, struct BpJsonFormatContext *ctx);

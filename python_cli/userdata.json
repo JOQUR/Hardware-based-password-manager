@@ -1,1 +1,10 @@
-{"users": [{"login": "admin", "password_hash": "17bf3cd1c92b4e9ba352ffeb51d49ff5dc29df14e7757b6b10dbf24101e2b120", "salt": "b58dd14447e23017b909004ea348952a"}]}
+{
+    "users": [
+        {
+            "login": "admin",
+            "password_hash": "17bf3cd1c92b4e9ba352ffeb51d49ff5dc29df14e7757b6b10dbf24101e2b120",
+            "salt": "b58dd14447e23017b909004ea348952a",
+            "kek": ""
+        }
+    ]
+}

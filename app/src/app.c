@@ -3,9 +3,10 @@
 #include "crypto_ctx.h"
 #include "user_context.h"
 #include "user_store.h"
+#include <string.h>
+#include "gcm_api.h"
 
 static bool app_generate_password(bool generate, struct GenerateRsp* generate_rsp);
-static bool app_process_login(struct Login* login, struct LoginRsp* login_rsp);
 static bool app_process_new_entry(struct AddEntry* new_entry, struct AddEntryRsp* new_entry_rsp);
 
 extern bool messenger_process_message(array_t* message, array_t* response, bool* send_reponse);
@@ -14,8 +15,8 @@ extern message_processor processor_cbk;
 bool app_process_message(array_t* message, array_t* response, bool* send_reponse)
 {
     bool status = true;
-    status &= !((NULL == message) || (NULL == response));
-    status &= (0 != message->size);
+    CHECK_STATUS(status, !((NULL == message) || (NULL == response)));
+    CHECK_STATUS(status, status &= (0 != message->size));
     struct App app_message = {0};
     struct AppRsp app_reponse = {0};
 
@@ -35,8 +36,9 @@ bool app_process_message(array_t* message, array_t* response, bool* send_reponse
 
             case GENERATE:
             {
-                status &= app_generate_password(&app_message.generate, &(app_reponse.generate));
+                status &= app_generate_password(app_message.generate.generate, &(app_reponse.generate));
                 app_reponse.node_id = GENERATE;
+                CHECK_STATUS(status, app_reponse.new_entry.ack == false);
                 *send_reponse = true;
             }
             break;
@@ -75,7 +77,12 @@ static bool app_generate_password(bool generate, struct GenerateRsp* generate_rs
 
     if (true == generate)
     {
-        cryptoctx_generate_rand_buffer(generate_rsp->generated_password, sizeof(generate_rsp->generated_password));
+        uint8_t generated_password[32] = {0};
+        cryptoctx_generate_rand_buffer(generated_password, sizeof(generated_password));
+        PRINT_BUFFER(generated_password, sizeof(generated_password), "Generated Password");
+        cryptoctx_generate_iv();
+        memcpy(generate_rsp->initialization_vector, cryptoctx_get_iv(), GCM_IV_LEN);
+        gcm_encrypt(generate_rsp->initialization_vector, NULL, 0, generated_password, generate_rsp->generated_password, sizeof(generate_rsp->generated_password), generate_rsp->tag, sizeof(generate_rsp->tag));
     }
     else
     {
