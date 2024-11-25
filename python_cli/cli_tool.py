@@ -7,11 +7,10 @@ class cli_tool:
         self.application = application
 
     def run(self):
-        while True:
-            self.__print_menu()
-            user_input = input()
-            self.__clear_terminal()
-            return self.__parse_input(user_input)
+        self.__print_menu()
+        user_input = input()
+        self.__clear_terminal()
+        return self.__parse_input(user_input)
     
     def __print_menu(self):
         print("Choose an option: ")
