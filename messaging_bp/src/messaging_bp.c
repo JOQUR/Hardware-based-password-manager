@@ -588,7 +588,27 @@ void BpXXXProcessArrayAddEntry1(void *data, struct BpProcessorContext *ctx) {
 }
 
 void BpXXXProcessArrayAddEntry2(void *data, struct BpProcessorContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 16, BpUint(8, sizeof(uint8_t)));
+    BpEndecodeArray(&descriptor, ctx, data);
+}
+
+void BpXXXProcessArrayAddEntry3(void *data, struct BpProcessorContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 16, BpUint(8, sizeof(uint8_t)));
+    BpEndecodeArray(&descriptor, ctx, data);
+}
+
+void BpXXXProcessArrayAddEntry4(void *data, struct BpProcessorContext *ctx) {
     struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 32, BpUint(8, sizeof(uint8_t)));
+    BpEndecodeArray(&descriptor, ctx, data);
+}
+
+void BpXXXProcessArrayAddEntry5(void *data, struct BpProcessorContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 16, BpUint(8, sizeof(uint8_t)));
+    BpEndecodeArray(&descriptor, ctx, data);
+}
+
+void BpXXXProcessArrayAddEntry6(void *data, struct BpProcessorContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 12, BpUint(8, sizeof(uint8_t)));
     BpEndecodeArray(&descriptor, ctx, data);
 }
 
@@ -598,29 +618,53 @@ void BpXXXJsonFormatArrayAddEntry1(void *data, struct BpJsonFormatContext *ctx) 
 }
 
 void BpXXXJsonFormatArrayAddEntry2(void *data, struct BpJsonFormatContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 16, BpUint(8, sizeof(uint8_t)));
+    BpJsonFormatArray(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatArrayAddEntry3(void *data, struct BpJsonFormatContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 16, BpUint(8, sizeof(uint8_t)));
+    BpJsonFormatArray(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatArrayAddEntry4(void *data, struct BpJsonFormatContext *ctx) {
     struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 32, BpUint(8, sizeof(uint8_t)));
+    BpJsonFormatArray(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatArrayAddEntry5(void *data, struct BpJsonFormatContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 16, BpUint(8, sizeof(uint8_t)));
+    BpJsonFormatArray(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatArrayAddEntry6(void *data, struct BpJsonFormatContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 12, BpUint(8, sizeof(uint8_t)));
     BpJsonFormatArray(&descriptor, ctx, data);
 }
 
 void BpFieldDescriptorsInitAddEntry(struct AddEntry *m, struct BpMessageFieldDescriptor *fds) {
     fds[0] = BpMessageFieldDescriptor((void *)&(m->info), BpArray(256, 32 * sizeof(uint8_t), BpXXXProcessArrayAddEntry1, BpXXXJsonFormatArrayAddEntry1), "info");
-    fds[1] = BpMessageFieldDescriptor((void *)&(m->wrapped_password), BpArray(256, 32 * sizeof(uint8_t), BpXXXProcessArrayAddEntry2, BpXXXJsonFormatArrayAddEntry2), "wrapped_password");
-    fds[2] = BpMessageFieldDescriptor((void *)&(m->password_length), BpUint(8, sizeof(uint8_t)), "password_length");
+    fds[1] = BpMessageFieldDescriptor((void *)&(m->kek), BpArray(128, 16 * sizeof(uint8_t), BpXXXProcessArrayAddEntry2, BpXXXJsonFormatArrayAddEntry2), "kek");
+    fds[2] = BpMessageFieldDescriptor((void *)&(m->tag_kek), BpArray(128, 16 * sizeof(uint8_t), BpXXXProcessArrayAddEntry3, BpXXXJsonFormatArrayAddEntry3), "tag_kek");
+    fds[3] = BpMessageFieldDescriptor((void *)&(m->wrapped_password), BpArray(256, 32 * sizeof(uint8_t), BpXXXProcessArrayAddEntry4, BpXXXJsonFormatArrayAddEntry4), "wrapped_password");
+    fds[4] = BpMessageFieldDescriptor((void *)&(m->tag_pass), BpArray(128, 16 * sizeof(uint8_t), BpXXXProcessArrayAddEntry5, BpXXXJsonFormatArrayAddEntry5), "tag_pass");
+    fds[5] = BpMessageFieldDescriptor((void *)&(m->initialization_vector), BpArray(96, 12 * sizeof(uint8_t), BpXXXProcessArrayAddEntry6, BpXXXJsonFormatArrayAddEntry6), "initialization_vector");
+    fds[6] = BpMessageFieldDescriptor((void *)&(m->password_length), BpUint(8, sizeof(uint8_t)), "password_length");
 }
 
 void BpXXXProcessAddEntry(void *data, struct BpProcessorContext *ctx) {
     struct AddEntry *m = (struct AddEntry *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[3];
+    struct BpMessageFieldDescriptor field_descriptors[7];
     BpFieldDescriptorsInitAddEntry(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 3, 520, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 7, 1000, field_descriptors);
     BpEndecodeMessage(&descriptor, ctx, data);
 }
 
 void BpXXXJsonFormatAddEntry(void *data, struct BpJsonFormatContext *ctx) {
     struct AddEntry *m = (struct AddEntry *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[3];
+    struct BpMessageFieldDescriptor field_descriptors[7];
     BpFieldDescriptorsInitAddEntry(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 3, 520, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 7, 1000, field_descriptors);
     BpJsonFormatMessage(&descriptor, ctx, data);
 }
 
@@ -642,23 +686,34 @@ int JsonAddEntry(struct AddEntry *m, char *s) {
     return ctx.n;
 }
 
+void BpXXXProcessArrayAddEntryRsp2(void *data, struct BpProcessorContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 32, BpUint(8, sizeof(uint8_t)));
+    BpEndecodeArray(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatArrayAddEntryRsp2(void *data, struct BpJsonFormatContext *ctx) {
+    struct BpArrayDescriptor descriptor = BpArrayDescriptor(false, 32, BpUint(8, sizeof(uint8_t)));
+    BpJsonFormatArray(&descriptor, ctx, data);
+}
+
 void BpFieldDescriptorsInitAddEntryRsp(struct AddEntryRsp *m, struct BpMessageFieldDescriptor *fds) {
-    fds[0] = BpMessageFieldDescriptor((void *)&(m->ack), BpBool(), "ack");
+    fds[0] = BpMessageFieldDescriptor((void *)&(m->index), BpUint(8, sizeof(uint8_t)), "index");
+    fds[1] = BpMessageFieldDescriptor((void *)&(m->info), BpArray(256, 32 * sizeof(uint8_t), BpXXXProcessArrayAddEntryRsp2, BpXXXJsonFormatArrayAddEntryRsp2), "info");
 }
 
 void BpXXXProcessAddEntryRsp(void *data, struct BpProcessorContext *ctx) {
     struct AddEntryRsp *m = (struct AddEntryRsp *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[1];
+    struct BpMessageFieldDescriptor field_descriptors[2];
     BpFieldDescriptorsInitAddEntryRsp(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 1, 1, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 2, 264, field_descriptors);
     BpEndecodeMessage(&descriptor, ctx, data);
 }
 
 void BpXXXJsonFormatAddEntryRsp(void *data, struct BpJsonFormatContext *ctx) {
     struct AddEntryRsp *m = (struct AddEntryRsp *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[1];
+    struct BpMessageFieldDescriptor field_descriptors[2];
     BpFieldDescriptorsInitAddEntryRsp(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 1, 1, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 2, 264, field_descriptors);
     BpJsonFormatMessage(&descriptor, ctx, data);
 }
 
@@ -680,25 +735,102 @@ int JsonAddEntryRsp(struct AddEntryRsp *m, char *s) {
     return ctx.n;
 }
 
+void BpFieldDescriptorsInitDelEntry(struct DelEntry *m, struct BpMessageFieldDescriptor *fds) {
+    fds[0] = BpMessageFieldDescriptor((void *)&(m->index), BpUint(8, sizeof(uint8_t)), "index");
+}
+
+void BpXXXProcessDelEntry(void *data, struct BpProcessorContext *ctx) {
+    struct DelEntry *m = (struct DelEntry *)(data);
+    struct BpMessageFieldDescriptor field_descriptors[1];
+    BpFieldDescriptorsInitDelEntry(m, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 1, 8, field_descriptors);
+    BpEndecodeMessage(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatDelEntry(void *data, struct BpJsonFormatContext *ctx) {
+    struct DelEntry *m = (struct DelEntry *)(data);
+    struct BpMessageFieldDescriptor field_descriptors[1];
+    BpFieldDescriptorsInitDelEntry(m, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 1, 8, field_descriptors);
+    BpJsonFormatMessage(&descriptor, ctx, data);
+}
+
+int EncodeDelEntry(struct DelEntry *m, unsigned char *s) {
+    struct BpProcessorContext ctx = BpProcessorContext(true, s);
+    BpXXXProcessDelEntry((void *)m, &ctx);
+    return 0;
+}
+
+int DecodeDelEntry(struct DelEntry *m, unsigned char *s) {
+    struct BpProcessorContext ctx = BpProcessorContext(false, s);
+    BpXXXProcessDelEntry((void *)m, &ctx);
+    return 0;
+}
+
+int JsonDelEntry(struct DelEntry *m, char *s) {
+    struct BpJsonFormatContext ctx = BpJsonFormatContext(s);
+    BpXXXJsonFormatDelEntry((void *)m, &ctx);
+    return ctx.n;
+}
+
+void BpFieldDescriptorsInitDelEntryRsp(struct DelEntryRsp *m, struct BpMessageFieldDescriptor *fds) {
+    fds[0] = BpMessageFieldDescriptor((void *)&(m->ack), BpBool(), "ack");
+}
+
+void BpXXXProcessDelEntryRsp(void *data, struct BpProcessorContext *ctx) {
+    struct DelEntryRsp *m = (struct DelEntryRsp *)(data);
+    struct BpMessageFieldDescriptor field_descriptors[1];
+    BpFieldDescriptorsInitDelEntryRsp(m, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 1, 1, field_descriptors);
+    BpEndecodeMessage(&descriptor, ctx, data);
+}
+
+void BpXXXJsonFormatDelEntryRsp(void *data, struct BpJsonFormatContext *ctx) {
+    struct DelEntryRsp *m = (struct DelEntryRsp *)(data);
+    struct BpMessageFieldDescriptor field_descriptors[1];
+    BpFieldDescriptorsInitDelEntryRsp(m, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 1, 1, field_descriptors);
+    BpJsonFormatMessage(&descriptor, ctx, data);
+}
+
+int EncodeDelEntryRsp(struct DelEntryRsp *m, unsigned char *s) {
+    struct BpProcessorContext ctx = BpProcessorContext(true, s);
+    BpXXXProcessDelEntryRsp((void *)m, &ctx);
+    return 0;
+}
+
+int DecodeDelEntryRsp(struct DelEntryRsp *m, unsigned char *s) {
+    struct BpProcessorContext ctx = BpProcessorContext(false, s);
+    BpXXXProcessDelEntryRsp((void *)m, &ctx);
+    return 0;
+}
+
+int JsonDelEntryRsp(struct DelEntryRsp *m, char *s) {
+    struct BpJsonFormatContext ctx = BpJsonFormatContext(s);
+    BpXXXJsonFormatDelEntryRsp((void *)m, &ctx);
+    return ctx.n;
+}
+
 void BpFieldDescriptorsInitApp(struct App *m, struct BpMessageFieldDescriptor *fds) {
     fds[0] = BpMessageFieldDescriptor((void *)&(m->node_id), BpEnum(8, sizeof(AppNode)), "node_id");
-    fds[1] = BpMessageFieldDescriptor((void *)&(m->new_entry), BpMessage(520, sizeof(struct AddEntry), BpXXXProcessAddEntry, BpXXXJsonFormatAddEntry), "new_entry");
+    fds[1] = BpMessageFieldDescriptor((void *)&(m->new_entry), BpMessage(1000, sizeof(struct AddEntry), BpXXXProcessAddEntry, BpXXXJsonFormatAddEntry), "new_entry");
     fds[2] = BpMessageFieldDescriptor((void *)&(m->generate), BpMessage(1, sizeof(struct Generate), BpXXXProcessGenerate, BpXXXJsonFormatGenerate), "generate");
+    fds[3] = BpMessageFieldDescriptor((void *)&(m->del_entry), BpMessage(8, sizeof(struct DelEntry), BpXXXProcessDelEntry, BpXXXJsonFormatDelEntry), "del_entry");
 }
 
 void BpXXXProcessApp(void *data, struct BpProcessorContext *ctx) {
     struct App *m = (struct App *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[3];
+    struct BpMessageFieldDescriptor field_descriptors[4];
     BpFieldDescriptorsInitApp(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 3, 529, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 4, 1017, field_descriptors);
     BpEndecodeMessage(&descriptor, ctx, data);
 }
 
 void BpXXXJsonFormatApp(void *data, struct BpJsonFormatContext *ctx) {
     struct App *m = (struct App *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[3];
+    struct BpMessageFieldDescriptor field_descriptors[4];
     BpFieldDescriptorsInitApp(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 3, 529, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 4, 1017, field_descriptors);
     BpJsonFormatMessage(&descriptor, ctx, data);
 }
 
@@ -722,23 +854,24 @@ int JsonApp(struct App *m, char *s) {
 
 void BpFieldDescriptorsInitAppRsp(struct AppRsp *m, struct BpMessageFieldDescriptor *fds) {
     fds[0] = BpMessageFieldDescriptor((void *)&(m->node_id), BpEnum(8, sizeof(AppNode)), "node_id");
-    fds[1] = BpMessageFieldDescriptor((void *)&(m->new_entry), BpMessage(1, sizeof(struct AddEntryRsp), BpXXXProcessAddEntryRsp, BpXXXJsonFormatAddEntryRsp), "new_entry");
+    fds[1] = BpMessageFieldDescriptor((void *)&(m->new_entry), BpMessage(264, sizeof(struct AddEntryRsp), BpXXXProcessAddEntryRsp, BpXXXJsonFormatAddEntryRsp), "new_entry");
     fds[2] = BpMessageFieldDescriptor((void *)&(m->generate), BpMessage(480, sizeof(struct GenerateRsp), BpXXXProcessGenerateRsp, BpXXXJsonFormatGenerateRsp), "generate");
+    fds[3] = BpMessageFieldDescriptor((void *)&(m->del_entry), BpMessage(1, sizeof(struct DelEntryRsp), BpXXXProcessDelEntryRsp, BpXXXJsonFormatDelEntryRsp), "del_entry");
 }
 
 void BpXXXProcessAppRsp(void *data, struct BpProcessorContext *ctx) {
     struct AppRsp *m = (struct AppRsp *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[3];
+    struct BpMessageFieldDescriptor field_descriptors[4];
     BpFieldDescriptorsInitAppRsp(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 3, 489, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 4, 753, field_descriptors);
     BpEndecodeMessage(&descriptor, ctx, data);
 }
 
 void BpXXXJsonFormatAppRsp(void *data, struct BpJsonFormatContext *ctx) {
     struct AppRsp *m = (struct AppRsp *)(data);
-    struct BpMessageFieldDescriptor field_descriptors[3];
+    struct BpMessageFieldDescriptor field_descriptors[4];
     BpFieldDescriptorsInitAppRsp(m, field_descriptors);
-    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 3, 489, field_descriptors);
+    struct BpMessageDescriptor descriptor = BpMessageDescriptor(false, 4, 753, field_descriptors);
     BpJsonFormatMessage(&descriptor, ctx, data);
 }
 

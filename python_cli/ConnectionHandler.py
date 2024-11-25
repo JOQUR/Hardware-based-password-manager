@@ -3,16 +3,19 @@ import os
 from Client import Client
 from State import State
 from Application import Application
-import messaging_bp
+from cli_tool import cli_tool
+import getpass
+
 class ConnectionHandler:
     def __init__(self, client: Client, port):
         self.__client = client
         self.__port = port
         self.__server_socket = socket(AF_INET, SOCK_STREAM)
+        self.cli_tool = None
     
     def __start_app(self):
             self.__client.stage = Application(self.__client.stage.crypto)
-
+            self.cli_tool = cli_tool(self.__client.stage)
         
     def start(self):
         self.__server_socket.connect(("localhost", self.__port))
@@ -49,8 +52,14 @@ class ConnectionHandler:
             rcv = server_socket.recv(1024)
             self.__client.stage.processGenerate(rcv)
 
+            while True:
+                server_socket.sendall(self.cli_tool.run())
+                rcv = server_socket.recv(1024)
+                self.__client.stage.processMessage(rcv)
+            
+
 if __name__ == "__main__":
-    client = Client("admin", "admsin123")
+    client = Client(input("Enter the login: "), getpass.getpass("Enter the password: "))
     connection_handler = ConnectionHandler(client, 8070)
     connection_handler.start()
     print("Connection established successfully.")

@@ -27,6 +27,7 @@ class User:
         json_file = self.__read_json("userdata.json")
         userName = json_file["users"][0]["login"]
         passHash = json_file["users"][0]["password_hash"]
+        self.__kek = json_file["users"][0]["kek"]
         if self.__isUserCreated():
             if userName == self.username and passHash == self.password:
                 return True
@@ -46,13 +47,14 @@ class User:
         return True
     
     def __createUser(self, username, password, salt):
+        kek = ICrypto.getRandomByteArray(16)
         json_file = self.__read_json("userdata.json")
         json_file["users"][0]["login"] = username
         json_file["users"][0]["password_hash"] = password
         json_file["users"][0]["salt"] = salt
-        json_file["users"][0]["kek"] = ICrypto.getRandomByteArray(16)
+        json_file["users"][0]["kek"] = "".join("{:02x}".format(x) for x in kek)
         with open("userdata.json", "w") as file:
-            json.dump(json_file, file)
+            json.dump(json_file, file, indent=4)
         
 
 
