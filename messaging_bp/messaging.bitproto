@@ -53,14 +53,16 @@ message Responses {
 enum AppNode: uint8 {
     // Add password
     ADD_ENTRY = 0
+    // Delete password
+    DEL_ENTRY = 1
     // Get password
-    READ_ENTRY = 1
+    READ_ENTRY = 2
     // Modify password
-    MODIFY = 2
+    MODIFY = 3
     // generate password
-    GENERATE = 3
+    GENERATE = 4
     // Read all entries
-    READ_ALL = 4
+    READ_ALL = 5
 }
 
 message Generate {
@@ -85,11 +87,24 @@ message ReadEntryRsp {
 
 message AddEntry {
     uint8[32] info = 1
-    uint8[32] wrapped_password = 2
-    uint8 password_length = 3
+    uint8[16] kek = 2
+    uint8[16] tag_kek = 3
+    uint8[32] wrapped_password = 4
+    uint8[16] tag_pass = 5
+    uint8[12] initialization_vector = 6
+    uint8 password_length = 7
 }
 
 message AddEntryRsp {
+    uint8 index = 1
+    uint8[32] info = 2
+}
+
+message DelEntry {
+    uint8 index = 1
+}
+
+message DelEntryRsp {
     bool ack = 1
 }
 
@@ -97,11 +112,12 @@ message App {
     AppNode node_id = 1
     AddEntry new_entry = 2
     Generate generate = 3
+    DelEntry del_entry = 4
 }
 
 message AppRsp {
     AppNode node_id = 1
     AddEntryRsp new_entry = 2
     GenerateRsp generate = 3
-
+    DelEntryRsp del_entry = 4
 }

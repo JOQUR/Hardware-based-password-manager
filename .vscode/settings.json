@@ -19,6 +19,7 @@
         "standard_def.h": "c",
         "stdbool.h": "c",
         "app.h": "c",
-        "crypto_ctx.h": "c"
+        "crypto_ctx.h": "c",
+        "user_store.h": "c"
     }
 }

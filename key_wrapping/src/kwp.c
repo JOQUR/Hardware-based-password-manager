@@ -6,18 +6,6 @@
 #define IV_LEN 8
 
 
-/**
- * @brief Wraps a key using a Key Encryption Key (KEK).
- *
- * This function wraps an unwrapped key using the provided Key Encryption Key (KEK)
- * and stores the result in the wrapped_key array.
- *
- * @param[in] kek Pointer to the array containing the Key Encryption Key (KEK).
- * @param[in] unwrapped_key Pointer to the array containing the key to be wrapped.
- * @param[out] wrapped_key Pointer to the array where the wrapped key will be stored.
- *
- * @return KW_Status_t Status of the key wrapping operation.
- */
 KW_Status_t kw_wrap_key(array_t* kek, array_t* unwrapped_key, array_t* wrapped_key)
 {
     KW_Status_t status = OK;
@@ -78,17 +66,6 @@ KW_Status_t kw_wrap_key(array_t* kek, array_t* unwrapped_key, array_t* wrapped_k
     return status;
 }
 
-/**
- * @brief Unwraps a wrapped key using a Key Encryption Key (KEK).
- *
- * This function takes a wrapped key and a Key Encryption Key (KEK) and 
- * unwraps the key, storing the result in the provided unwrapped_key array.
- *
- * @param kek Pointer to the array containing the Key Encryption Key (KEK).
- * @param wrapped_key Pointer to the array containing the wrapped key.
- * @param unwrapped_key Pointer to the array where the unwrapped key will be stored.
- * @return KW_Status_t Status code indicating the result of the unwrapping operation.
- */
 KW_Status_t kw_unwrap_key(array_t* kek, array_t* wrapped_key, array_t* unwrapped_key)
 {
     KW_Status_t status = OK;
