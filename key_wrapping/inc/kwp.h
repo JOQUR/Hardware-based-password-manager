@@ -13,6 +13,7 @@ typedef enum {
     INTEGRITY_FAIL
 } KW_Status_t;
 
+#define KWP_VERIFY(__STATUS__, __OP__)  if(__STATUS__ == OK) {__STATUS__ |= __OP__;};
 
 /**
  * @brief Wraps a key using a Key Encryption Key (KEK).

@@ -48,10 +48,6 @@ class ConnectionHandler:
             assert self.__client.stage.state == State.APP_START, "Application did not start successfully."
             self.__start_app()
 
-            server_socket.sendall(self.__client.stage.prepareGenerate())
-            rcv = server_socket.recv(1024)
-            self.__client.stage.processGenerate(rcv)
-
             while True:
                 server_socket.sendall(self.cli_tool.run())
                 rcv = server_socket.recv(1024)

@@ -1,11 +1,15 @@
 #include "user_store.h" 
 #include "string.h"
 #include "standard_def.h"
+#include "kwp.h"
+#include "debug.h"
+
 
 #define ALL_ENTRIES_ARE_OCCUPIED 0xFFFF
+#define MAX_ENTRIES 32
 typedef struct entries
 {
-    user_entry_t user_entries[32];
+    user_entry_t user_entries[MAX_ENTRIES];
     uint8_t index;
     uint8_t kek[16];
 } entries_t;
@@ -22,6 +26,8 @@ bool user_store_add_new_entry(struct AddEntry* new_entry, uint8_t* index)
 
     bool status = true;
     uint16_t idx = user_store_find_empty_entry();
+    KW_Status_t status_kw = OK;
+    
     if (idx == ALL_ENTRIES_ARE_OCCUPIED)
     {
         status &= false;
@@ -30,11 +36,21 @@ bool user_store_add_new_entry(struct AddEntry* new_entry, uint8_t* index)
     {
         *index = idx;
         user_entries.user_entries[idx].password_length = (new_entry->password_length);
-        memcpy(user_entries.user_entries[idx].wrapped_password, new_entry->wrapped_password, ARRAY_SIZE(user_entries.user_entries[idx].wrapped_password));
+        array_t kek = {.buffer = new_entry->kek, .size = ARRAY_SIZE(new_entry->kek)};
+        array_t wrapped_key = {.buffer = new_entry->wrapped_password, .size = ARRAY_SIZE(new_entry->wrapped_password)};
+        array_t unwrapped_key = {.buffer = user_entries.user_entries[idx].wrapped_password, .size = ARRAY_SIZE(user_entries.user_entries[idx].wrapped_password)};
+
+        KWP_VERIFY(status_kw, kw_wrap_key(&kek, &wrapped_key, &unwrapped_key));
+
+        if(status_kw != OK)
+        {
+            return false;
+        }
+
+        memcpy(user_entries.user_entries[idx].wrapped_password, unwrapped_key.buffer, ARRAY_SIZE(user_entries.user_entries[idx].wrapped_password));
         memcpy(user_entries.user_entries[idx].info, new_entry->info, ARRAY_SIZE(user_entries.user_entries[idx].info));
         memcpy(user_entries.kek, new_entry->kek, ARRAY_SIZE(user_entries.kek));
         user_entries.user_entries[idx].isOccupied = true;
-        user_entries.index++;
     }
 
 
@@ -43,7 +59,7 @@ bool user_store_add_new_entry(struct AddEntry* new_entry, uint8_t* index)
 
 bool user_store_del_entry(uint8_t index)
 {
-    if (index >= ARRAY_SIZE(user_entries.user_entries))
+    if (index >= MAX_ENTRIES)
     {
         return false;
     }
@@ -56,7 +72,7 @@ bool user_store_del_entry(uint8_t index)
 
 static uint16_t user_store_find_empty_entry(void)
 {
-    for (uint8_t i = 0; i < ARRAY_SIZE(user_entries.user_entries); i++)
+    for (uint8_t i = 0; i < MAX_ENTRIES; i++)
     {
         if (false == user_entries.user_entries[i].isOccupied)
         {

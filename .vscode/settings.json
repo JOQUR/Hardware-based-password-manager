@@ -20,6 +20,7 @@
         "stdbool.h": "c",
         "app.h": "c",
         "crypto_ctx.h": "c",
-        "user_store.h": "c"
+        "user_store.h": "c",
+        "kwp.h": "c"
     }
 }
