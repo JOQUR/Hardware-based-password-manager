@@ -9,6 +9,8 @@
 static bool app_generate_password(bool generate, struct GenerateRsp* generate_rsp);
 static bool app_process_new_entry(struct AddEntry* new_entry, struct AddEntryRsp* new_entry_rsp);
 static bool app_del_entry(uint8_t index);
+static bool app_modify_entry(struct Modify* modify, struct ModifyRsp* modify_rsp);
+static bool app_read_entry(struct ReadEntry* read_entry, struct ReadEntryRsp* read_entry_rsp);
 
 extern bool messenger_process_message(array_t* message, array_t* response, bool* send_reponse);
 extern message_processor processor_cbk;
@@ -49,6 +51,22 @@ bool app_process_message(array_t* message, array_t* response, bool* send_reponse
                 status &= app_del_entry(app_message.del_entry.index);
                 app_reponse.node_id = DEL_ENTRY;
                 app_reponse.del_entry.ack = status;
+                *send_reponse = true;
+            }
+            break;
+
+            case MODIFY:
+            {
+                status &= app_modify_entry(&app_message.modify, &app_reponse.modify);
+                app_reponse.node_id = MODIFY;
+                *send_reponse = true;
+            }
+            break;
+
+            case READ_ENTRY:
+            {
+                status &= app_read_entry(&app_message.read, &app_reponse.read);
+                app_reponse.node_id = READ_ENTRY;
                 *send_reponse = true;
             }
             break;
@@ -116,5 +134,25 @@ static bool app_del_entry(uint8_t index)
 {
     bool status = true;
     status &= user_store_del_entry(index);
+    return status;
+}
+
+static bool app_modify_entry(struct Modify* modify, struct ModifyRsp* modify_rsp)
+{
+    bool status = true;
+    status &= user_store_modify_password(modify);
+    CHECK_STATUS(status, modify_rsp->ack = true);
+    return status;
+}
+
+static bool app_read_entry(struct ReadEntry* read_entry, struct ReadEntryRsp* read_entry_rsp)
+{
+    bool status = true;
+    status &= user_store_read_entry(read_entry, read_entry_rsp);
+    CHECK_STATUS(status, cryptoctx_generate_iv());
+    uint8_t* iv = cryptoctx_get_iv();
+    gcm_encrypt(iv, NULL, 0, read_entry_rsp->wrapped_password, read_entry_rsp->wrapped_password, sizeof(read_entry_rsp->wrapped_password), read_entry_rsp->tag, GCM_TAG_LEN);
+
+    memcpy(read_entry_rsp->initialization_vector, iv, GCM_IV_LEN);
     return status;
 }

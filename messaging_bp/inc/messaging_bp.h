@@ -124,19 +124,21 @@ struct GenerateRsp {
 };
 
 // Number of bytes to encode struct ReadEntry
-#define BYTES_LENGTH_READ_ENTRY 1
+#define BYTES_LENGTH_READ_ENTRY 17
 
 struct ReadEntry {
+    uint8_t kek[16]; // 128bit
     uint8_t index; // 8bit
 };
 
 // Number of bytes to encode struct ReadEntryRsp
-#define BYTES_LENGTH_READ_ENTRY_RSP 65
+#define BYTES_LENGTH_READ_ENTRY_RSP 61
 
 struct ReadEntryRsp {
-    uint8_t info[32]; // 256bit
     uint8_t wrapped_password[32]; // 256bit
     uint8_t password_length; // 8bit
+    uint8_t initialization_vector[12]; // 96bit
+    uint8_t tag[16]; // 128bit
 };
 
 // Number of bytes to encode struct AddEntry
@@ -174,24 +176,47 @@ struct DelEntryRsp {
     bool ack; // 1bit
 };
 
+// Number of bytes to encode struct Modify
+#define BYTES_LENGTH_MODIFY 94
+
+struct Modify {
+    uint8_t index; // 8bit
+    uint8_t info[32]; // 256bit
+    uint8_t new_password[32]; // 256bit
+    uint8_t password_length; // 8bit
+    uint8_t tag_pass[16]; // 128bit
+    uint8_t initialization_vector[12]; // 96bit
+};
+
+// Number of bytes to encode struct ModifyRsp
+#define BYTES_LENGTH_MODIFY_RSP 1
+
+struct ModifyRsp {
+    bool ack; // 1bit
+};
+
 // Number of bytes to encode struct App
-#define BYTES_LENGTH_APP 128
+#define BYTES_LENGTH_APP 239
 
 struct App {
     AppNode node_id; // 8bit
     struct AddEntry new_entry; // 1000bit
     struct Generate generate; // 1bit
     struct DelEntry del_entry; // 8bit
+    struct Modify modify; // 752bit
+    struct ReadEntry read; // 136bit
 };
 
 // Number of bytes to encode struct AppRsp
-#define BYTES_LENGTH_APP_RSP 95
+#define BYTES_LENGTH_APP_RSP 156
 
 struct AppRsp {
     AppNode node_id; // 8bit
     struct AddEntryRsp new_entry; // 264bit
     struct GenerateRsp generate; // 480bit
     struct DelEntryRsp del_entry; // 1bit
+    struct ModifyRsp modify; // 1bit
+    struct ReadEntryRsp read; // 488bit
 };
 
 // Encode struct InitializeComm to given buffer s.
@@ -306,6 +331,20 @@ int DecodeDelEntryRsp(struct DelEntryRsp *m, unsigned char *s);
 // Format struct DelEntryRsp to a json format string.
 int JsonDelEntryRsp(struct DelEntryRsp *m, char *s);
 
+// Encode struct Modify to given buffer s.
+int EncodeModify(struct Modify *m, unsigned char *s);
+// Decode struct Modify from given buffer s.
+int DecodeModify(struct Modify *m, unsigned char *s);
+// Format struct Modify to a json format string.
+int JsonModify(struct Modify *m, char *s);
+
+// Encode struct ModifyRsp to given buffer s.
+int EncodeModifyRsp(struct ModifyRsp *m, unsigned char *s);
+// Decode struct ModifyRsp from given buffer s.
+int DecodeModifyRsp(struct ModifyRsp *m, unsigned char *s);
+// Format struct ModifyRsp to a json format string.
+int JsonModifyRsp(struct ModifyRsp *m, char *s);
+
 // Encode struct App to given buffer s.
 int EncodeApp(struct App *m, unsigned char *s);
 // Decode struct App from given buffer s.
@@ -367,6 +406,12 @@ void BpXXXJsonFormatDelEntry(void *data, struct BpJsonFormatContext *ctx);
 
 void BpXXXProcessDelEntryRsp(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatDelEntryRsp(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessModify(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatModify(void *data, struct BpJsonFormatContext *ctx);
+
+void BpXXXProcessModifyRsp(void *data, struct BpProcessorContext *ctx);
+void BpXXXJsonFormatModifyRsp(void *data, struct BpJsonFormatContext *ctx);
 
 void BpXXXProcessApp(void *data, struct BpProcessorContext *ctx);
 void BpXXXJsonFormatApp(void *data, struct BpJsonFormatContext *ctx);

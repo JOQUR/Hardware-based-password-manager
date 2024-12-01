@@ -38,10 +38,13 @@ int main(void)
     int sockfd, connfd, len;
     struct sockaddr_in servaddr = {0};
     struct sockaddr_in cli = {0};
+
+#ifndef NDEBUG
     test_gcm_encryption();
     test_gcm_decryption();
     test_kwp_wrapping();
     test_kwp_unwrapping();
+#endif
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     assert(sockfd != -1);
 
@@ -54,7 +57,9 @@ int main(void)
         printf("socket bind failed...\n"); 
         exit(0); 
     } 
-    assert(listen(sockfd, 1) == 0);
+
+    int listen_status = listen(sockfd, 1);
+    assert(listen_status == 0);
 
     len = sizeof(cli);
     connfd = accept(sockfd, (SA*)&cli, &len); 

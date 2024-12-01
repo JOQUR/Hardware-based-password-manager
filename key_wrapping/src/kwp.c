@@ -121,6 +121,8 @@ KW_Status_t kw_unwrap_key(array_t* kek, array_t* wrapped_key, array_t* unwrapped
     /*
      * Set the ciphertext length value
      */
+
+
     unwrapped_key->size = wrapped_key->size - 8;
     if (memcmp(iv, A, 8))
     {

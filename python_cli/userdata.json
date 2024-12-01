@@ -1,13 +1,12 @@
 {
     "users": [
         {
-            "login": "",
-            "password_hash": "",
-            "salt": "",
-            "kek": "",
+            "login": "a",
+            "password_hash": "5ee9b8fffcf0973d22f8e37a34159cbd6ad74754f24589fbc2e1f3ef6be28d26",
+            "salt": "fa4e0b8dceb09d0a1fa7225e814c911e",
+            "kek": "a1880ea9cae4c367b3fd39fbcb3d5194",
             "passwords": {
-                "list": [
-                ]
+                "list": []
             }
         }
     ]

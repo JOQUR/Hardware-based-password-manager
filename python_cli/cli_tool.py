@@ -17,6 +17,8 @@ class cli_tool:
         print("1. Generate password for me.")
         print("2. Add new Entry.")
         print("3. Delete Entry.")
+        print("4. Modify Entry.")
+        print("5. Read Entry.")
         print("0. Exit.")
 
     def __parse_input(self, usr_input: str):
@@ -35,6 +37,16 @@ class cli_tool:
             info = input("Enter the info: ")
             print("Deleting entry with info: ", int(info))
             return self.application.prepareDeleteEntry(int(info))
+        elif user_input == 4: 
+            print("Modifying entry...")
+            index = int(input("Enter the index: "))
+            info = input("Enter the info: ")
+            password = getpass.getpass("Enter the password: ")
+            return self.application.prepareModifyEntry(index, info.encode(), password.encode())
+        elif user_input == 5:
+            print("Reading entry...")
+            index = int(input("Enter the index: "))
+            return self.application.prepareReadEntry(index)
         elif user_input == 0:
             print("Exiting...")
             exit(0)

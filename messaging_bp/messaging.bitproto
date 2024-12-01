@@ -76,13 +76,15 @@ message GenerateRsp {
 }
 
 message ReadEntry {
-    uint8 index = 1
+    uint8[16] kek = 1
+    uint8 index = 2
 }
 
 message ReadEntryRsp {
-    uint8[32] info = 1
-    uint8[32] wrapped_password = 2
-    uint8 password_length = 3
+    uint8[32] wrapped_password = 1
+    uint8 password_length = 2
+    uint8[12] initialization_vector = 3
+    uint8[16] tag = 4
 }
 
 message AddEntry {
@@ -108,11 +110,26 @@ message DelEntryRsp {
     bool ack = 1
 }
 
+message Modify {
+    uint8 index = 1
+    uint8[32] info = 2
+    uint8[32] new_password = 3
+    uint8 password_length = 4
+    uint8[16] tag_pass = 5
+    uint8[12] initialization_vector = 6
+}
+
+message ModifyRsp {
+    bool ack = 1
+}
+
 message App {
     AppNode node_id = 1
     AddEntry new_entry = 2
     Generate generate = 3
     DelEntry del_entry = 4
+    Modify modify = 5
+    ReadEntry read = 6
 }
 
 message AppRsp {
@@ -120,4 +137,6 @@ message AppRsp {
     AddEntryRsp new_entry = 2
     GenerateRsp generate = 3
     DelEntryRsp del_entry = 4
+    ModifyRsp modify = 5
+    ReadEntryRsp read = 6
 }

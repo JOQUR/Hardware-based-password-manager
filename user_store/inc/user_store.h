@@ -37,4 +37,31 @@ bool user_store_add_new_entry(struct AddEntry* new_entry, uint8_t* index);
  */
 bool user_store_del_entry(uint8_t index);
 
+
+/**
+ * @brief Modifies the password for a user in the user store.
+ *
+ * This function updates the password for a specified user in the user store.
+ *
+ * @param modify A pointer to a Modify structure containing the necessary
+ *               information to modify the user's password.
+ * @return true if the password was successfully modified, false otherwise.
+ */
+bool user_store_modify_password(struct Modify* modify);
+
+/**
+ * @brief Reads a user entry from the user store.
+ *
+ * This function reads a user entry from the user store based on the provided
+ * read_entry structure and fills the read_entry_rsp structure with the
+ * corresponding response data.
+ *
+ * @param read_entry Pointer to a ReadEntry structure containing the details
+ *                   of the entry to be read.
+ * @param read_entry_rsp Pointer to a ReadEntryRsp structure where the response
+ *                       data will be stored.
+ * @return true if the entry was successfully read, false otherwise.
+ */
+bool user_store_read_entry(struct ReadEntry* read_entry, struct ReadEntryRsp* read_entry_rsp);
+
 #endif

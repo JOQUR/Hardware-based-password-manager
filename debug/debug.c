@@ -1,5 +1,7 @@
 #include "debug.h"
 
+#ifndef NDEBUG
+
 void print_array(uint8_t* buffer, uint16_t size, uint8_t* desc)
 {
     printf("%s: ", desc);
@@ -10,3 +12,5 @@ void print_array(uint8_t* buffer, uint16_t size, uint8_t* desc)
     printf("\r\n");
     
 }
+
+#endif
